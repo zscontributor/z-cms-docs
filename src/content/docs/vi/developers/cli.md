@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-`zcms` giúp developer tạo project mẫu, tạo khóa cho nhà phát hành, đóng gói và kiểm tra plugin hoặc theme. CLI có bốn command: `init`, `keygen`, `pack` và `verify`. Việc tải package lên được thực hiện trên Developer Portal, không phải bằng CLI.
+`zcms` giúp developer tạo project mẫu, tạo khóa cho nhà phát hành, đóng gói và kiểm tra plugin hoặc theme. CLI có bốn command — `init`, `keygen`, `pack` và `verify` — cùng với `help`. Việc tải package lên được thực hiện trên Developer Portal, không phải bằng CLI.
 
 ## Cài đặt
 
@@ -55,11 +55,24 @@ zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
           [--description <text>] [--author <name>] [--author-url <url>]
           [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
-zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem> [--out <file>]
+zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--operator-key <private.pem>] [--out <file>]
 zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms help [--lang en|ja|vi]
 ```
 
 Chạy `zcms` không kèm command để xem hướng dẫn sử dụng này.
+
+### Trợ giúp và ngôn ngữ
+
+`zcms help` in ra phần hướng dẫn ở trên; `zcms` không kèm command, `zcms -h`, `zcms -help` và `zcms --help` cũng vậy. Nội dung trợ giúp có sẵn bằng tiếng Anh, tiếng Nhật và tiếng Việt:
+
+```bash
+zcms help --lang vi      # Tiếng Việt
+zcms help --lang ja      # 日本語  (--lang JP và --lang VN cũng được chấp nhận)
+```
+
+Nếu không có `--lang`, ngôn ngữ được đọc từ `ZCMS_LANG`, rồi tới locale của shell (`LANG`), và nếu không có thì mặc định là tiếng Anh. Chỉ phần trợ giúp được dịch — kết quả build, checksum và chi tiết lỗi giống nhau trong mọi ngôn ngữ.
 
 ## 1. Tạo project mẫu
 
@@ -130,7 +143,7 @@ Command tạo hai tệp trong thư mục `./keys`:
 - `publisher-private.pem`, chỉ owner được đọc (`0600`)
 - `publisher-public.pem`, dùng để đăng ký trong [Developer Portal](https://marketplace.z-cms.org/developer/publisher)
 
-Chỉ tạo cặp khóa một lần cho mỗi nhà phát hành, không tạo khóa mới cho từng phiên bản. CLI từ chối ghi đè khóa riêng đã tồn tại vì package ký bằng khóa cũ sẽ không còn khớp với nhà phát hành đã đăng ký.
+Chỉ tạo cặp khóa một lần cho mỗi nhà phát hành, không tạo khóa mới cho từng phiên bản. CLI từ chối ghi đè bất kỳ tệp khóa nào đã tồn tại — cả khóa riêng lẫn khóa công khai: ghi đè khóa riêng khiến mọi package từng ký bằng nó bị mồ côi, còn ghi đè riêng nửa khóa công khai sẽ để lại một cặp khóa không khớp. Hãy trỏ `--out` tới một thư mục trống.
 
 `publisher-private.pem` **chính là danh tính của bạn**. Ai có nó đều có thể ký package dưới danh nghĩa bạn, và một khi nó lộ ra thì mọi package bạn từng ký đều phải bị coi là có thể giả mạo. Hãy backup ở nơi không phải là một repository. `.gitignore` do scaffold sinh ra đã loại `*.pem`, và packer không bao giờ đưa key material vào package (xem bên dưới) — nhưng không cơ chế nào cứu được bạn nếu bạn dán nó vào một khung chat hay một CI log.
 
@@ -169,6 +182,18 @@ Với theme, dùng cùng command nhưng đổi thành `--kind theme`. Giá trị
 Nếu dùng `--out`, thư mục cha như `./release` phải tồn tại trước khi chạy command; CLI chỉ tạo file `.zcms`, không tự tạo thư mục cha.
 
 Command in ra ID package, phiên bản, kích thước tệp và checksum. Package này đã có chữ ký của nhà phát hành nhưng chưa thể cài đặt cho đến khi Marketplace kiểm duyệt và thêm chữ ký.
+
+### Chữ ký sideload (chỉ cho self-hosted)
+
+Nhà phát hành lên Marketplace có thể bỏ qua phần này. Nếu bạn tự vận hành instance Z-CMS **của riêng mình** và muốn cài extension mà không qua Marketplace, hãy thêm `--operator-key`:
+
+```bash
+zcms pack . --kind theme \
+  --key ./op-private.pem --pub ./op-public.pem \
+  --operator-key ./op-private.pem
+```
+
+Lệnh này đóng thêm một chữ ký thứ hai — chữ ký **operator**. Một instance có runtime ghim `OPERATOR_PUBLIC_KEY` tương ứng — và với theme thì đặt `ALLOW_THEME_SIDELOAD=true` — sẽ chạy package sau khi admin tải lên tại **Admin → Appearance → Install from file** rồi phê duyệt, hoàn toàn không cần Marketplace. Dùng cùng một cặp khóa operator cho `--key`/`--pub`. Package ký theo cách này dành cho sideload, không phải để gửi lên Marketplace.
 
 ## 5. Xác minh trước khi gửi
 

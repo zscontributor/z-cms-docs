@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-`zcms` は、拡張機能のひな型作成、公開者鍵の生成、パッケージ化、署名の検証を行う CLI です。コマンドは `init`、`keygen`、`pack`、`verify` の 4 つです。パッケージのアップロードは Developer Portal で行います。
+`zcms` は、拡張機能のひな型作成、公開者鍵の生成、パッケージ化、署名の検証を行う CLI です。コマンドは `init`、`keygen`、`pack`、`verify` の 4 つに加えて `help` があります。パッケージのアップロードは Developer Portal で行います。
 
 ## インストール
 
@@ -24,11 +24,24 @@ zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
           [--description <text>] [--author <name>] [--author-url <url>]
           [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
-zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem> [--out <file>]
+zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--operator-key <private.pem>] [--out <file>]
 zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms help [--lang en|ja|vi]
 ```
 
 コマンドを指定せずに `zcms` を実行すると、この使用方法が表示されます。
+
+### ヘルプと言語
+
+`zcms help` は上記の使用方法を表示します。コマンドなしの `zcms`、`zcms -h`、`zcms -help`、`zcms --help` も同様です。ヘルプは英語・日本語・ベトナム語で利用できます。
+
+```bash
+zcms help --lang ja      # 日本語
+zcms help --lang vi      # Tiếng Việt  (--lang JP や --lang VN も受け付けます)
+```
+
+`--lang` がない場合、言語は `ZCMS_LANG`、次にシェルのロケール（`LANG`）から判定され、いずれもなければ英語になります。翻訳されるのはヘルプのみで、ビルド出力・チェックサム・エラーの詳細はどの言語でも同じです。
 
 ## 1. プロジェクトのひな型を作成する
 
@@ -97,7 +110,7 @@ zcms keygen --out ./keys
 - `publisher-private.pem`: 所有者だけが読み取り可能な秘密鍵 (`0600`)
 - `publisher-public.pem`: Developer Portal へ登録する公開鍵
 
-鍵ペアは公開者ごとに一度だけ作成し、バージョンごとに作り直さないでください。CLI は既存の秘密鍵を上書きしません。
+鍵ペアは公開者ごとに一度だけ作成し、バージョンごとに作り直さないでください。CLI は既存の鍵ファイルを秘密鍵・公開鍵のいずれも上書きしません。秘密鍵を上書きすると、それで署名したすべてのパッケージが検証できなくなり、公開鍵だけを書き換えると鍵ペアが一致しなくなります。`--out` は空のディレクトリを指定してください。
 
 `publisher-private.pem` は公開者の身元を証明する秘密鍵です。漏洩すると、第三者があなたの名前でパッケージに署名できます。Git 以外の安全な場所にバックアップし、チャットや CI ログへ貼り付けないでください。
 
@@ -134,6 +147,18 @@ zcms pack . --kind plugin \
 テーマの場合は `--kind theme` に変更します。`--out` を省略すると、現在のディレクトリに `<manifest.id>-<manifest.version>.zcms` が作成されます。`--out` を指定する場合、親ディレクトリは事前に作成してください。
 
 コマンドはパッケージ ID、バージョン、ファイルサイズ、チェックサムを出力します。この時点では公開者の署名だけがあり、Marketplace の審査と署名が完了するまではインストールできません。
+
+### サイドロード署名（セルフホスト専用）
+
+Marketplace で公開する場合は読み飛ばして構いません。**自分の** Z-CMS インスタンスを運用していて、Marketplace を経由せずに拡張機能をインストールしたい場合は、`--operator-key` を追加します。
+
+```bash
+zcms pack . --kind theme \
+  --key ./op-private.pem --pub ./op-public.pem \
+  --operator-key ./op-private.pem
+```
+
+これは 2 つ目の **operator** 署名を付与します。対応する `OPERATOR_PUBLIC_KEY` をランタイムがピン留めし、テーマの場合は `ALLOW_THEME_SIDELOAD=true` を設定したインスタンスなら、管理者が **管理画面 → Appearance → Install from file** からアップロードして承認した時点で、Marketplace を介さずにパッケージを実行します。`--key`/`--pub` には同じ operator の鍵ペアを使います。この方法で署名したパッケージはサイドロード用であり、Marketplace への提出用ではありません。
 
 ## 5. 提出前に検証する
 

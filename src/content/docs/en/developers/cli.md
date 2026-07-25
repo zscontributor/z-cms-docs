@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-`zcms` is how you start, build and sign an extension. It has four commands: `init`, `keygen`, `pack` and `verify`. It does not upload packages — see [Publish a package](/en/marketplace/publishing/).
+`zcms` is how you start, build and sign an extension. It has four commands — `init`, `keygen`, `pack` and `verify` — plus `help`. It does not upload packages — see [Publish a package](/en/marketplace/publishing/).
 
 ## Install
 
@@ -13,7 +13,7 @@ sidebar:
 npm install -g @zcmsorg/cli
 ```
 
-The package is `@zcmsorg/cli`; the command it installs is `zcms`.
+The package is `@zcmsorg/cli`; the command it installs is `zcms`. It requires Node.js 22 or newer.
 
 It has no dependencies. The signing code is bundled into the one file, so the bytes that sign your packages are the ones the Z-CMS repository builds — not whatever the registry resolved on the day you installed it. That matters more than it usually would: this tool lives on the machine that holds the private key behind everything you publish.
 
@@ -21,13 +21,27 @@ It has no dependencies. The signing code is bundled into the one file, so the by
 
 ```text
 zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
-          [--author <name>] [--description <text>] [--version <semver>] [--yes]
+          [--description <text>] [--author <name>] [--author-url <url>]
+          [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
-zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem> [--out <file>]
+zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--operator-key <private.pem>] [--out <file>]
 zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms help [--lang en|ja|vi]
 ```
 
 Run `zcms` without a command to print this usage information.
+
+### Help and language
+
+`zcms help` prints the usage above; so do `zcms` with no command, `zcms -h`, `zcms -help` and `zcms --help`. The help text is available in English, Japanese and Vietnamese:
+
+```bash
+zcms help --lang vi      # Tiếng Việt
+zcms help --lang ja      # 日本語  (--lang JP and --lang VN are accepted too)
+```
+
+Without `--lang`, the language is read from `ZCMS_LANG`, then from your shell locale (`LANG`), and otherwise falls back to English. Only the help text is translated — build output, checksums and error details are identical in every language.
 
 ## 1. Scaffold the project
 
@@ -92,7 +106,7 @@ The command creates:
 - `publisher-private.pem`, readable only by its owner (`0600`)
 - `publisher-public.pem`, which may be registered in the Developer Portal
 
-The CLI refuses to overwrite an existing private key: overwriting one orphans every package it has ever signed.
+The CLI refuses to overwrite an existing key file — private or public. Overwriting a private key orphans every package it has ever signed; rewriting only the public half would leave you with a mismatched pair. Point `--out` at an empty directory.
 
 `publisher-private.pem` **is your identity**. Anyone who has it can sign a package as you, and once it leaks every package you ever signed has to be treated as forgeable. Back it up somewhere a repository is not. The scaffold's `.gitignore` already excludes `*.pem`, and the packer never puts key material inside a package (see below) — but neither control can help you if you paste it into a chat or a CI log.
 
@@ -127,6 +141,18 @@ zcms pack . --kind plugin \
 For a theme, use the same command with `--kind theme`. If `--out` is omitted, the output filename is `<manifest.id>-<manifest.version>.zcms` in the current directory.
 
 The command prints the package id, version, file size and checksum. This artifact has a valid publisher signature, but it is not installable until Marketplace has reviewed and co-signed it.
+
+### Sideload signature (self-hosted only)
+
+Marketplace publishers can skip this. If you run your **own** Z-CMS instance and want to install an extension without going through Marketplace, add `--operator-key`:
+
+```bash
+zcms pack . --kind theme \
+  --key ./op-private.pem --pub ./op-public.pem \
+  --operator-key ./op-private.pem
+```
+
+This stamps a second, **operator** signature. An instance whose runtimes pin the matching `OPERATOR_PUBLIC_KEY` — and, for themes, set `ALLOW_THEME_SIDELOAD=true` — will run the package once an admin uploads it under **Admin → Appearance → Install from file** and approves it, with no Marketplace involved. Use the same operator key pair for `--key`/`--pub`. A package signed this way is meant for sideloading, not for Marketplace submission.
 
 ## 5. Verify before submission
 
