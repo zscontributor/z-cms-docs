@@ -67,6 +67,7 @@ Tạo `plugin.json` tại thư mục gốc của package. Các trường bắt b
   },
   "engine": ">=0.1.0",
   "entry": "dist/index.js",
+  "scope": "site",
   "permissions": ["content:read"],
   "capabilities": ["hello.content-helper"],
   "media": {
@@ -75,7 +76,14 @@ Tạo `plugin.json` tại thư mục gốc của package. Các trường bắt b
 }
 ```
 
-Các trường tùy chọn gồm `capabilities`, `media`, `settingsSchema` và `database.tables`. Nên ưu tiên `ctx.storage`; chỉ khai báo bảng quan hệ khi thực sự cần. Tên bảng phải dùng tiền tố riêng của plugin theo quy định của nền tảng.
+Các trường tùy chọn gồm `scope`, `capabilities`, `media`, `settingsSchema` và `database.tables`. Nên ưu tiên `ctx.storage`; chỉ khai báo bảng quan hệ khi thực sự cần. Tên bảng phải dùng tiền tố riêng của plugin theo quy định của nền tảng.
+
+`scope` khai báo **phạm vi kích hoạt** của plugin và có thể là `"site"` (mặc định) hoặc `"org"`:
+
+- `"site"` — cài và kích hoạt riêng cho từng website. Đây là mặc định, phù hợp với hầu hết plugin (SEO, thương mại, trợ lý AI…).
+- `"org"` — cài **một lần cho cả tổ chức (tenant)** và chạy trên **mọi website** thuộc tổ chức đó, giống plugin "network-activated" của WordPress. Quản trị viên quản lý ở màn hình **Plugin tổ chức** riêng.
+
+`scope` là *phạm vi*, không phải *quyền hạn*: một plugin `"org"` vẫn phải được phê duyệt permission ở tầng nó cài, và không bao giờ tự trở thành plugin lõi. Nền tảng đọc `scope` từ manifest **đã ký**, nên một package không thể tự nâng quyền hạn qua trường này. Xem [Theme và plugin](/vi/users/extensions/) để biết cách quản trị viên bật plugin theo từng tầng.
 
 ## Bước 3: Implement entrypoint
 

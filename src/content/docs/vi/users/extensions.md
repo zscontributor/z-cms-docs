@@ -25,7 +25,17 @@ Không cài package được gửi trực tiếp từ nguồn không tin cậy h
 
 ## Vòng đời plugin
 
-**Install** đưa package đã được xác minh vào hệ thống. **Activate** cho phép plugin chạy trên website. **Deactivate** dừng plugin nhưng không xóa package. Cấu hình và dữ liệu của plugin có thể vẫn còn sau khi vô hiệu hóa, vì vậy hãy đọc hướng dẫn gỡ cài đặt trước khi xóa.
+**Install** đưa package đã được xác minh vào hệ thống. **Activate** cho phép plugin chạy trên **một website**. **Deactivate** dừng plugin nhưng không xóa package. Cấu hình và dữ liệu của plugin có thể vẫn còn sau khi vô hiệu hóa, vì vậy hãy đọc hướng dẫn gỡ cài đặt trước khi xóa.
+
+## Phạm vi kích hoạt: site và tổ chức
+
+Mỗi plugin thuộc đúng một **tầng kích hoạt**, quyết định nơi nó chạy:
+
+- **Plugin lõi (Core)** — do Z-CMS cung cấp, cài sẵn trên mọi website nhưng **tắt** cho đến khi quản trị viên bật và phê duyệt quyền.
+- **Plugin site** — cài và kích hoạt riêng cho từng website tại màn hình **Plugin**. Đây là tầng mặc định.
+- **Plugin tổ chức** — bật **một lần cho cả tổ chức** tại màn hình **Plugin tổ chức**, sau đó chạy trên **mọi website** thuộc tổ chức. Trên màn hình Plugin của từng website, plugin loại này hiển thị ở dạng chỉ đọc kèm nhãn "Đã bật cho toàn tổ chức".
+
+Chỉ Administrator hoặc Owner mới quản lý được plugin tổ chức, vì một thay đổi ở đó ảnh hưởng tới mọi website. Một plugin chỉ cài được ở đúng tầng do manifest của nó khai báo (`scope`): không thể cài plugin tổ chức cho riêng một website, và ngược lại.
 
 ## Phê duyệt quyền
 

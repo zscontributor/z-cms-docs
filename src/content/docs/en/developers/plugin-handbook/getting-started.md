@@ -67,6 +67,7 @@ Create `plugin.json` at the package root. The required fields are `id`, `name`, 
   },
   "engine": ">=0.1.0",
   "entry": "dist/index.js",
+  "scope": "site",
   "permissions": ["content:read"],
   "capabilities": ["hello.content-helper"],
   "media": {
@@ -75,7 +76,14 @@ Create `plugin.json` at the package root. The required fields are `id`, `name`, 
 }
 ```
 
-Optional plugin fields include `capabilities`, `media`, `settingsSchema` and `database.tables`. Prefer `ctx.storage`; declare relational tables only when necessary, and keep every table inside the plugin-specific prefix enforced by the platform.
+Optional plugin fields include `scope`, `capabilities`, `media`, `settingsSchema` and `database.tables`. Prefer `ctx.storage`; declare relational tables only when necessary, and keep every table inside the plugin-specific prefix enforced by the platform.
+
+`scope` declares the plugin's **activation reach** and is either `"site"` (the default) or `"org"`:
+
+- `"site"` — installed and activated per website. This is the default and fits most plugins (SEO, commerce, an AI assistant, and so on).
+- `"org"` — installed **once for the whole organization (tenant)** and runs on **every website** that organization owns, like a WordPress "network-activated" plugin. Administrators manage it from a separate **Organization plugins** screen.
+
+`scope` is *reach*, not *authority*: an `"org"` plugin still has its permissions approved at the tier it installs at, and never becomes a core plugin. The platform reads `scope` from the **signed** manifest, so a package cannot widen its own privileges through this field. See [Themes and plugins](/en/users/extensions/) for how administrators enable plugins at each tier.
 
 ## Step 3: Implement the entrypoint
 

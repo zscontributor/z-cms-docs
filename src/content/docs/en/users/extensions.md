@@ -25,7 +25,17 @@ Do not install a package received directly from an untrusted source or one witho
 
 ## Plugin lifecycle
 
-**Install** adds a verified package to the system; **Activate** lets it run for the site; **Deactivate** stops its functionality without removing the package. Configuration and plugin data may remain after deactivation, so read the removal guide before uninstalling.
+**Install** adds a verified package to the system; **Activate** lets it run for **one website**; **Deactivate** stops its functionality without removing the package. Configuration and plugin data may remain after deactivation, so read the removal guide before uninstalling.
+
+## Activation tiers: site and organization
+
+Every plugin belongs to exactly one **activation tier**, which decides where it runs:
+
+- **Core plugins** — shipped by Z-CMS, pre-installed on every website but left **off** until an administrator turns one on and approves its permissions.
+- **Site plugins** — installed and activated per website on the **Plugins** screen. This is the default tier.
+- **Organization plugins** — turned on **once for the whole organization** on the **Organization plugins** screen, after which they run on **every website** the organization owns. On each website's Plugins screen these appear read-only, marked "Activated organization-wide".
+
+Only an Administrator or Owner can manage organization plugins, because a change there affects every website. A plugin can only be installed at the tier its manifest declares (`scope`): an organization plugin cannot be installed on a single site, and vice versa.
 
 ## Approve permissions
 
