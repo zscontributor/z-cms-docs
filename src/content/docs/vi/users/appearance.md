@@ -18,6 +18,8 @@ Theme định nghĩa mẫu giao diện, khối nội dung, vị trí menu, tài 
 
 Mở **Appearance** để xem các theme đã cài và những theme có thể cài từ danh mục. Permission `theme:install` cho phép cài package; `theme:activate` cho phép đổi theme đang hoạt động. Khi kích hoạt theme, Z-CMS làm mới bộ nhớ đệm hiển thị của website nhưng không xóa nội dung.
 
+Mỗi thẻ theme hiển thị mục **Có gì mới** nếu tác giả có kèm — ghi chú phát hành của phiên bản đang cài. Mở rộng mục này để xem phiên bản đã thay đổi những gì trước khi bạn chuyển sang hoặc cập nhật.
+
 ## Cấu hình theme
 
 Khi theme được kích hoạt, Z-CMS tạo biểu mẫu cấu hình từ JSON Schema của theme. Tùy từng theme, biểu mẫu có thể gồm các trường về màu sắc, kiểu chữ, logo riêng, liên kết mạng xã hội, bố cục, favicon và SEO.

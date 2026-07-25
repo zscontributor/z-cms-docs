@@ -9,7 +9,7 @@ Z-CMS phân phối theme và plugin dưới dạng package đã ký. Hệ thốn
 
 ## Trước khi cài plugin
 
-Trước khi cài, hãy kiểm tra nhà phát hành, phiên bản tương thích, lịch sử thay đổi, các permission mà plugin yêu cầu và chính sách xử lý dữ liệu.
+Trước khi cài, hãy kiểm tra nhà phát hành, phiên bản tương thích, lịch sử thay đổi, các permission mà plugin yêu cầu và chính sách xử lý dữ liệu. Lịch sử thay đổi hiển thị dưới dạng mục **Có gì mới** trên mỗi plugin — ghi chú phát hành do nhà phát hành viết cho phiên bản đó, giúp bạn biết phiên bản mới làm gì trước khi phê duyệt.
 
 ## Cài đặt
 

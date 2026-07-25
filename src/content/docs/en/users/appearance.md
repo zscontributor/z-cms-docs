@@ -18,6 +18,8 @@ A theme controls the public site's templates, blocks, menu locations, assets, an
 
 Open **Appearance** to see installed themes and themes available from the catalog. `theme:install` permits package installation, while `theme:activate` permits switching the active theme. Activation invalidates the site's render cache but does not delete content.
 
+Each theme card shows a **What's new** note when its author shipped one — the release notes for the installed version. Expand it to see what a version changed before you switch to it or update.
+
 ## Configure a theme
 
 For the active theme, Z-CMS generates a settings form from its JSON Schema. Depending on the theme, this can include colors, typography, a theme-specific logo, social links, layouts, icons, and SEO options.

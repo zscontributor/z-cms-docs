@@ -9,7 +9,7 @@ Z-CMS installs themes and plugins as signed packages. A package signature is che
 
 ## Before installing a plugin
 
-Review the publisher, compatible versions, changelog, requested permissions and data policy.
+Review the publisher, compatible versions, changelog, requested permissions and data policy. The changelog appears as a **What's new** note on each plugin — the release notes the publisher wrote for that version, so you can see what a new version does before approving it.
 
 ## Installation
 
