@@ -61,6 +61,7 @@ Tạo `plugin.json` tại thư mục gốc của package. Các trường bắt b
   "name": "Hello Plugin",
   "version": "0.1.0",
   "description": "Adds a read-only content helper.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -76,7 +77,9 @@ Tạo `plugin.json` tại thư mục gốc của package. Các trường bắt b
 }
 ```
 
-Các trường tùy chọn gồm `scope`, `capabilities`, `media`, `settingsSchema` và `database.tables`. Nên ưu tiên `ctx.storage`; chỉ khai báo bảng quan hệ khi thực sự cần. Tên bảng phải dùng tiền tố riêng của plugin theo quy định của nền tảng.
+Các trường tùy chọn gồm `changelog`, `scope`, `capabilities`, `media`, `settingsSchema` và `database.tables`. Nên ưu tiên `ctx.storage`; chỉ khai báo bảng quan hệ khi thực sự cần. Tên bảng phải dùng tiền tố riêng của plugin theo quy định của nền tảng.
+
+Trường tùy chọn `changelog` chứa ghi chú phát hành của phiên bản này — một danh sách ngắn những thay đổi so với phiên bản trước. Quản trị viên thấy nó dưới dạng mục "Có gì mới" trong trình quản lý plugin và khi xem xét bản cập nhật, nên hiểu phiên bản mới làm gì trước khi phê duyệt. Viết văn bản thuần, mỗi thay đổi một dòng (cho phép dòng trống và tab); giới hạn 2000 ký tự. Hãy cập nhật `changelog` mỗi khi tăng `version`.
 
 `scope` khai báo **phạm vi kích hoạt** của plugin và có thể là `"site"` (mặc định) hoặc `"org"`:
 
@@ -116,7 +119,7 @@ Chạy typecheck, lint và test script của project. Sửa toàn bộ lỗi tr�
 ## Bước 6: Build release package
 
 1. Cập nhật version cuối cùng trong manifest và `package.json`.
-2. Cập nhật changelog và permission disclosure.
+2. Cập nhật ghi chú `changelog` trong manifest và phần công bố quyền.
 3. Build từ clean checkout bằng lockfile đã commit.
 4. Nếu chưa có cặp khóa của nhà phát hành, hãy tạo một lần bằng:
 

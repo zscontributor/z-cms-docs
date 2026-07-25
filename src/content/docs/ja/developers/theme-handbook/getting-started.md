@@ -64,6 +64,7 @@ pnpm build
   "name": "Corporate",
   "version": "0.1.0",
   "description": "Responsive corporate theme.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -93,7 +94,9 @@ pnpm build
 }
 ```
 
-任意フィールドは `seo`、`media`、`demo`、`optionalCapabilities` です。更新後もサイトから参照できるよう、テンプレート名、メニューキー、設定キーはバージョン間で変更しないでください。
+任意フィールドは `changelog`、`seo`、`media`、`demo`、`optionalCapabilities` です。更新後もサイトから参照できるよう、テンプレート名、メニューキー、設定キーはバージョン間で変更しないでください。
+
+任意の `changelog` フィールドには、このバージョンのリリースノート（前バージョンからの変更点を簡潔にまとめたもの）を記述します。管理者はテーマ管理画面で「変更点」ノートとして確認でき、更新を適用する前に何が変わるかを把握できます。プレーンテキストで 1 行に 1 つの変更を書き（空行とタブは使用可能）、上限は 2000 文字です。公開された各バージョンは自身のノートを保持するため、`version` を上げるたびに `changelog` を更新してください。
 
 ## ステップ 3: テンプレートとブロックを実装する
 
@@ -138,7 +141,7 @@ pnpm build
 
 型チェック、lint、ユニットテスト、アクセシビリティチェック、ビジュアルリグレッションテストを実行します。その後、次の手順でリリース用ファイルを作成します。
 
-1. Version と changelog を更新する。
+1. マニフェストの `version` と `changelog` ノートを更新する。
 2. Commit 済み lockfile を使い、clean checkout から build する。
 3. Publisher key pair がない場合は、一度だけ生成する。
 

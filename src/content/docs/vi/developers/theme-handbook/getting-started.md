@@ -64,6 +64,7 @@ Tạo `theme.json` tại thư mục gốc của package. Các trường bắt bu
   "name": "Corporate",
   "version": "0.1.0",
   "description": "Responsive corporate theme.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -93,7 +94,9 @@ Tạo `theme.json` tại thư mục gốc của package. Các trường bắt bu
 }
 ```
 
-Các trường tùy chọn gồm `seo`, `media`, `demo` và `optionalCapabilities`. Không đổi tên template, khóa menu hoặc khóa thiết lập giữa các phiên bản vì website có thể tiếp tục tham chiếu đến chúng.
+Các trường tùy chọn gồm `changelog`, `seo`, `media`, `demo` và `optionalCapabilities`. Không đổi tên template, khóa menu hoặc khóa thiết lập giữa các phiên bản vì website có thể tiếp tục tham chiếu đến chúng.
+
+Trường tùy chọn `changelog` chứa ghi chú phát hành của phiên bản này — một danh sách ngắn những thay đổi so với phiên bản trước. Quản trị viên thấy nó dưới dạng mục "Có gì mới" trong trình quản lý theme, nên biết bản cập nhật mang lại điều gì trước khi áp dụng. Viết văn bản thuần, mỗi thay đổi một dòng (cho phép dòng trống và tab); giới hạn 2000 ký tự. Mỗi phiên bản đã phát hành giữ ghi chú riêng, vì vậy hãy cập nhật `changelog` mỗi khi tăng `version`.
 
 ## Bước 3: Xây dựng template và block
 
@@ -138,7 +141,7 @@ Chuyển sang theme khác rồi kích hoạt lại để xác nhận quá trình
 
 Chạy typecheck, lint, unit test, accessibility check và visual regression test. Sau đó:
 
-1. Cập nhật version và changelog.
+1. Cập nhật `version` và ghi chú `changelog` trong manifest.
 2. Build từ clean checkout bằng lockfile đã commit.
 3. Tạo cặp khóa của nhà phát hành một lần nếu chưa có:
 

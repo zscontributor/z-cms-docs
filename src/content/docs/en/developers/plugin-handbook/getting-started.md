@@ -61,6 +61,7 @@ Create `plugin.json` at the package root. The required fields are `id`, `name`, 
   "name": "Hello Plugin",
   "version": "0.1.0",
   "description": "Adds a read-only content helper.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -76,7 +77,9 @@ Create `plugin.json` at the package root. The required fields are `id`, `name`, 
 }
 ```
 
-Optional plugin fields include `scope`, `capabilities`, `media`, `settingsSchema` and `database.tables`. Prefer `ctx.storage`; declare relational tables only when necessary, and keep every table inside the plugin-specific prefix enforced by the platform.
+Optional plugin fields include `changelog`, `scope`, `capabilities`, `media`, `settingsSchema` and `database.tables`. Prefer `ctx.storage`; declare relational tables only when necessary, and keep every table inside the plugin-specific prefix enforced by the platform.
+
+The optional `changelog` field holds this version's release notes — a short list of what changed since the previous version. Administrators see it as a "What's new" note in the plugin manager and when they review an update, so they understand what a new version does before approving it. Write plain text with one change per line (blank lines and tabs are allowed); the limit is 2000 characters. Update `changelog` every time you bump `version`.
 
 `scope` declares the plugin's **activation reach** and is either `"site"` (the default) or `"org"`:
 
@@ -116,7 +119,7 @@ Run the project's typecheck, lint and test scripts. Fix every failure before pac
 ## Step 6: Build the release package
 
 1. Set the final version in the manifest and `package.json`.
-2. Update the changelog and permission disclosure.
+2. Update the `changelog` note in the manifest and the permission disclosure.
 3. Build from a clean checkout with the committed lockfile.
 4. Generate the publisher key pair once if you do not already have one:
 

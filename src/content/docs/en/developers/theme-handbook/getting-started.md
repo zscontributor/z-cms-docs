@@ -64,6 +64,7 @@ Create `theme.json` at the package root. The required fields are `id`, `name`, `
   "name": "Corporate",
   "version": "0.1.0",
   "description": "Responsive corporate theme.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -93,7 +94,9 @@ Create `theme.json` at the package root. The required fields are `id`, `name`, `
 }
 ```
 
-Optional fields include `seo`, `media`, `demo` and `optionalCapabilities`. Keep template names, menu keys and setting keys stable across updates because sites can continue referencing them.
+Optional fields include `changelog`, `seo`, `media`, `demo` and `optionalCapabilities`. Keep template names, menu keys and setting keys stable across updates because sites can continue referencing them.
+
+The optional `changelog` field holds this version's release notes — a short list of what changed since the previous version. Administrators see it as a "What's new" note in the theme manager, so they know what an update brings before applying it. Write plain text with one change per line (blank lines and tabs are allowed); the limit is 2000 characters. Each published version keeps its own notes, so update `changelog` every time you bump `version`.
 
 ## Step 3: Build templates and blocks
 
@@ -138,7 +141,7 @@ Switch away from the theme and back again to confirm that activation does not de
 
 Run typecheck, lint, unit tests, accessibility checks and visual regression tests. Then:
 
-1. Update the version and changelog.
+1. Update `version` and the `changelog` note in the manifest.
 2. Build from a clean checkout with the committed lockfile.
 3. Generate the publisher key pair once if needed:
 

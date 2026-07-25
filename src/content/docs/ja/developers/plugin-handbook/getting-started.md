@@ -61,6 +61,7 @@ pnpm test
   "name": "Hello Plugin",
   "version": "0.1.0",
   "description": "Adds a read-only content helper.",
+  "changelog": "- First public release.",
   "author": {
     "name": "Example Studio",
     "url": "https://example.com"
@@ -76,7 +77,9 @@ pnpm test
 }
 ```
 
-任意フィールドは `scope`、`capabilities`、`media`、`settingsSchema`、`database.tables` です。通常は `ctx.storage` を使用し、リレーショナルテーブルが本当に必要な場合だけ `database.tables` を宣言してください。すべてのテーブル名には、プラットフォームが指定するプラグイン固有の接頭辞が必要です。
+任意フィールドは `changelog`、`scope`、`capabilities`、`media`、`settingsSchema`、`database.tables` です。通常は `ctx.storage` を使用し、リレーショナルテーブルが本当に必要な場合だけ `database.tables` を宣言してください。すべてのテーブル名には、プラットフォームが指定するプラグイン固有の接頭辞が必要です。
+
+任意の `changelog` フィールドには、このバージョンのリリースノート（前バージョンからの変更点を簡潔にまとめたもの）を記述します。管理者はプラグイン管理画面で「変更点」ノートとして、また更新をレビューする際に確認でき、承認する前に新しいバージョンが何をするかを理解できます。プレーンテキストで 1 行に 1 つの変更を書き（空行とタブは使用可能）、上限は 2000 文字です。`version` を上げるたびに `changelog` を更新してください。
 
 `scope` はプラグインの**有効化の範囲**を宣言し、`"site"`（既定）または `"org"` を指定します。
 
@@ -116,7 +119,7 @@ pnpm test
 ## ステップ 6: リリース用パッケージを作成する
 
 1. Manifest と `package.json` に最終 version を設定します。
-2. 変更履歴と権限に関する説明を更新します。
+2. マニフェストの `changelog` ノートと権限に関する説明を更新します。
 3. コミット済みのロックファイルを使い、クリーンなチェックアウトからビルドします。
 4. 公開者の鍵ペアがない場合は、一度だけ生成します。
 
