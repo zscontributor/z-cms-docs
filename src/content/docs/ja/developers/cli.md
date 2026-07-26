@@ -133,18 +133,25 @@ zcms keygen --out ./keys
 
 ## 4. 拡張機能をパッケージ化して署名する
 
-プラグインの例:
+最初の引数は **パッケージ化する theme または plugin へのパス** です。`pack` はそのディレクトリ 1 つをアーカイブして署名します。ディレクトリ内にいる場合は `.`、そうでなければパスを明示的に指定します。
 
 ```bash
 mkdir -p release
 
-zcms pack . --kind plugin \
+# plugin をパスで指定
+zcms pack ./plugins/seo-toolkit --kind plugin \
   --key ./keys/publisher-private.pem \
   --pub ./keys/publisher-public.pem \
-  --out ./release/example-plugin-1.0.0.zcms
+  --out ./release/seo-toolkit-1.0.0.zcms
+
+# theme をパスで指定
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem \
+  --pub ./keys/publisher-public.pem \
+  --out ./release/corporate-1.0.0.zcms
 ```
 
-テーマの場合は `--kind theme` に変更します。`--out` を省略すると、現在のディレクトリに `<manifest.id>-<manifest.version>.zcms` が作成されます。`--out` を指定する場合、親ディレクトリは事前に作成してください。
+`--kind` はそのパスのマニフェストと一致させます（`plugin.json` → `--kind plugin`、`theme.json` → `--kind theme`）。`--out` を省略すると、現在のディレクトリに `<manifest.id>-<manifest.version>.zcms` が作成されます。`--out` を指定する場合、親ディレクトリは事前に作成してください。sign・pack・提出の全体的な流れは [パッケージを公開する](/ja/marketplace/publishing/) を参照してください。
 
 コマンドはパッケージ ID、バージョン、ファイルサイズ、チェックサムを出力します。この時点では公開者の署名だけがあり、Marketplace の審査と署名が完了するまではインストールできません。
 

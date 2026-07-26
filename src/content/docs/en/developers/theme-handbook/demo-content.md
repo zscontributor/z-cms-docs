@@ -154,6 +154,10 @@ Running **Reseed demo** replaces only content and menus previously created for t
 
 Because editors may have changed seeded rows, treat reseeding as a destructive operation for that theme's demo content. Do not instruct users to reseed after they have started adapting demo entries into real content.
 
+:::note[Seeding is always a manual admin action]
+Installing or updating a theme never seeds or reseeds demo content on its own. When you publish a new version whose demo data changed — corrected translations, added pages, extra menus — sites that already seeded the previous version keep their existing demo content until an administrator opens **Appearance** and clicks **Reseed demo** for the active theme. A fresh install shows no demo content until an administrator clicks **Seed demo**. Call this out in your changelog so operators know a reseed is required to pick up the change.
+:::
+
 ## Test before packaging
 
 1. Activate the theme on an empty test site and run **Seed demo**.

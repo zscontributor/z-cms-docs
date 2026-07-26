@@ -57,43 +57,68 @@ Marketplace và người kiểm duyệt phải mở được video mà không c�
 
 Nếu phiên bản mới bổ sung permission hoặc thay đổi cách xử lý dữ liệu, hãy nêu rõ thay đổi. Không giấu việc tăng permission trong một mục lịch sử thay đổi chung chung.
 
-## Bước 3: Tạo file phát hành
+## Bước 3: Đóng gói và ký file phát hành
 
-Build từ một bản checkout sạch, dùng lockfile đã commit và đúng phiên bản bộ công cụ được ghi trong tài liệu của project.
+Build từ một bản checkout sạch, dùng lockfile đã commit và đúng phiên bản bộ công cụ được ghi trong tài liệu của project. Sau đó chạy kiểm tra kiểu dữ liệu, lint và unit test, rồi xác nhận phiên bản trong manifest và entry đã build là chính xác.
 
-1. Chạy kiểm tra kiểu dữ liệu, lint và unit test.
-2. Xác nhận phiên bản trong manifest và entry đã build là chính xác.
-3. Đóng gói thư mục đã build bằng khóa của nhà phát hành:
+### Trỏ `pack` tới đúng theme hoặc plugin cần phát hành
 
-   ```bash
-   mkdir -p release
+`zcms pack` chỉ đóng gói **đúng một thư mục**, và thư mục đó chính là tham số đầu tiên — đường dẫn tới theme hoặc plugin bạn muốn phát hành. Không có gì nằm ngoài đường dẫn đó được đưa vào, nên đây là nơi bạn chỉ rõ *sẽ đóng gói extension nào*. Ở thư mục gốc phải có:
 
-   zcms pack ./path/to/built-package --kind plugin \
-     --key ./keys/publisher-private.pem \
-     --pub ./keys/publisher-public.pem \
-     --out ./release/package.zcms
-   ```
+- manifest — `theme.json` cho theme, `plugin.json` cho plugin — và
+- file entry đã build mà manifest khai báo trong `entry`: `dist/index.mjs` cho theme, `dist/index.js` cho plugin. Hãy build trước khi đóng gói; `pack` không tự build giúp bạn.
 
-   Dùng `--kind theme` nếu đóng gói theme.
+`--kind` phải khớp với manifest tại đường dẫn đó: `--kind theme` cho `theme.json`, `--kind plugin` cho `plugin.json`.
 
-4. Lưu checksum do `zcms pack` in ra.
-5. Xác minh chữ ký của nhà phát hành:
+**Để đóng gói một theme**, trỏ đường dẫn tới thư mục của theme:
 
-   ```bash
-   zcms verify ./release/package.zcms
-   ```
+```bash
+mkdir -p release
 
-6. Để kiểm tra khả năng tái tạo bản build, hãy đóng gói cùng thư mục thêm một lần. CLI sắp xếp các tệp và đặt timestamp của archive về 0 nên checksum phải giống nhau.
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem \
+  --pub ./keys/publisher-public.pem \
+  --out ./release/corporate-1.0.0.zcms
+```
 
-Nếu checksum khác nhau, hãy loại bỏ dữ liệu đầu vào không ổn định như timestamp, thứ tự tệp thay đổi hoặc dependency chưa được cố định phiên bản trước khi gửi.
+**Để đóng gói một plugin**, trỏ đường dẫn tới thư mục của plugin:
 
-## Bước 4: Tải lên và gửi kiểm duyệt
+```bash
+zcms pack ./plugins/seo-toolkit --kind plugin \
+  --key ./keys/publisher-private.pem \
+  --pub ./keys/publisher-public.pem \
+  --out ./release/seo-toolkit-1.0.0.zcms
+```
+
+Đường dẫn có thể là tuyệt đối (`/home/me/themes/corporate`) hoặc tương đối (`./themes/corporate`, hoặc `.` khi shell của bạn đang ở trong thư mục đó) — chỉ cần trỏ đúng tới thư mục chứa manifest. Mỗi lệnh chỉ nhận một đường dẫn: muốn phát hành nhiều extension thì chạy `zcms pack` một lần cho mỗi cái. Nếu bỏ qua `--out`, file sẽ được ghi vào thư mục hiện tại với tên `<manifest.id>-<manifest.version>.zcms`.
+
+### Việc ký diễn ra ngay trong `pack`
+
+Đóng gói **chính là bước ký** — không có lệnh `zcms sign` riêng. `--key` là khóa **riêng** của nhà phát hành, và `zcms pack` dùng nó để ký lên checksum nội dung của package khi ghi file; `--pub` nhúng khóa **công khai** tương ứng để người xác minh kiểm tra được chữ ký đó. Cả hai đều lấy từ Bước 1. Đừng để khóa riêng trên máy dùng chung hay trong log CI; trình đóng gói không bao giờ đưa file `*.pem` vào archive, nhưng nó không cứu được một khóa đã bị bạn dán ra ngoài.
+
+Lệnh sẽ in ra ID package, phiên bản, dung lượng file và checksum. Hãy lưu checksum — đó là giá trị mà cả trình xác minh lẫn Marketplace đều tính lại.
+
+### Xác minh, rồi kiểm tra khả năng tái tạo
+
+Xác minh chữ ký nhà phát hành trên đúng file bạn sẽ gửi:
+
+```bash
+zcms verify ./release/corporate-1.0.0.zcms
+```
+
+Sau đó đóng gói cùng thư mục thêm một lần nữa để xác nhận bản build có thể tái tạo; CLI sắp xếp các tệp và đặt timestamp của archive về 0 nên checksum phải giống lần đầu. Nếu hai checksum khác nhau, hãy loại bỏ dữ liệu đầu vào không ổn định như timestamp, thứ tự tệp thay đổi hoặc dependency chưa được cố định phiên bản trước khi gửi.
+
+## Bước 4: Gửi kiểm duyệt
+
+Hãy gửi **đúng file `.zcms` bạn đã xác minh** ở Bước 3 — không build lại hay đóng gói lại trong khoảng giữa lúc xác minh và lúc tải lên.
 
 Mở [**Developer Portal → Submit a package**](https://marketplace.z-cms.org/developer/submit), chọn file `.zcms` rồi nhấn **Submit for review**. Mỗi file được phép có dung lượng tối đa 20 MB; mỗi tài khoản developer được gửi tối đa 10 package trong khoảng thời gian một giờ liên tiếp.
 
-Portal không yêu cầu chọn nhà phát hành, ID package hoặc phiên bản. Các giá trị này được đọc từ phần thông tin đã ký trong package; nhà phát hành được xác định bằng khóa công khai đã đăng ký.
+Portal không yêu cầu chọn nhà phát hành, ID package hoặc phiên bản. Các giá trị này được đọc từ phần thông tin đã ký trong package; nhà phát hành được xác định bằng khóa công khai đã đăng ký — nghĩa là danh tính của thứ bạn gửi đến hoàn toàn từ package đã ký, không phải từ một biểu mẫu.
 
-Nếu tải lên qua API, gửi request `multipart/form-data` đã xác thực tới `POST /developer/submissions` và đặt file trong trường `file`. Dùng `GET /developer/submissions` để xem các lượt gửi của tài khoản hiện tại.
+Nếu tải lên qua API, gửi request `multipart/form-data` đã xác thực tới `POST /developer/submissions` và đặt file trong trường `file`. Dùng `GET /developer/submissions` để xem các lượt gửi của tài khoản hiện tại và trạng thái của chúng.
+
+Sau khi gửi, phiên bản sẽ đi qua các trạng thái mô tả ở những bước sau: tiếp nhận tự động trước (Bước 5), rồi tới quyết định của người kiểm duyệt (Bước 6). Theo dõi trạng thái tại **Developer Portal → Submissions**; package bị từ chối luôn kèm lý do để bạn xử lý.
 
 ## Bước 5: Xác minh tự động
 
@@ -148,3 +173,7 @@ zcms verify ./downloaded-package.zcms --marketplace-key ./marketplace-public.pem
 Theo dõi kênh hỗ trợ và địa chỉ liên hệ bảo mật. Mọi bản sửa lỗi phải được phát hành bằng semantic version mới; không sửa nội dung của bản phát hành đã có.
 
 Khi có sự cố bảo mật, hãy phối hợp công bố thông tin, gửi package đã sửa và yêu cầu thu hồi phiên bản bị ảnh hưởng nếu cần. Runtime sẽ đồng bộ danh sách thu hồi đã ký và cách ly package đã bị thu hồi.
+
+:::note[Nội dung demo của theme không tự động cập nhật]
+Nếu theme của bạn có kèm nội dung demo, việc cập nhật theme sẽ **không** làm mới dữ liệu demo của website. Khi một phiên bản mới thay đổi dữ liệu demo đó — sửa bản dịch, thêm trang hoặc menu — mỗi website vẫn giữ nguyên nội dung demo hiện có cho tới khi admin của website đó mở **Admin → Appearance** và nhấn **Reseed demo** cho theme đang kích hoạt (bản cài mới cần nhấn **Seed demo** trước). Reseed chỉ thay thế các bản ghi demo của chính theme đó và không đụng tới nội dung thật của admin. Hãy nêu rõ trong lịch sử thay đổi để người vận hành biết cần reseed. Xem [Cung cấp nội dung demo](/vi/developers/theme-handbook/demo-content/#hiểu-hành-vi-reseed).
+:::

@@ -154,6 +154,10 @@ Thao tác **Reseed demo** chỉ thay thế nội dung và menu đã được t�
 
 Do biên tập viên có thể đã sửa các bản ghi được seed, hãy xem reseed là thao tác phá hủy đối với dữ liệu demo của theme đó. Không hướng dẫn người dùng reseed sau khi họ đã bắt đầu sửa dữ liệu demo thành nội dung thật.
 
+:::note[Seed luôn là thao tác thủ công của admin]
+Việc cài đặt hay cập nhật theme sẽ không tự động seed hoặc reseed dữ liệu demo. Khi bạn phát hành phiên bản mới có thay đổi dữ liệu demo — sửa bản dịch, thêm trang, thêm menu — những website đã seed phiên bản trước vẫn giữ nguyên dữ liệu demo hiện có cho tới khi admin mở **Appearance** và nhấn **Reseed demo** cho theme đang kích hoạt. Với bản cài mới, website không có nội dung demo nào cho tới khi admin nhấn **Seed demo**. Hãy ghi rõ điều này trong lịch sử thay đổi để người vận hành biết cần reseed mới nhận được thay đổi.
+:::
+
 ## Kiểm thử trước khi đóng gói
 
 1. Kích hoạt theme trên website kiểm thử trống và chạy **Seed demo**.

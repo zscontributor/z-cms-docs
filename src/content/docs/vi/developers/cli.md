@@ -166,18 +166,25 @@ Vì `*.pem` luôn bị loại, thư mục `./keys` không được đưa vào fi
 
 ## 4. Đóng gói và ký extension bằng khóa của nhà phát hành
 
-Ví dụ với plugin:
+Tham số đầu tiên là **đường dẫn tới theme hoặc plugin cần đóng gói** — `pack` sẽ nén đúng thư mục đó và ký lên nó. Dùng `.` khi shell của bạn đang ở trong thư mục đó, hoặc trỏ thẳng tới nó:
 
 ```bash
 mkdir -p release
 
-zcms pack . --kind plugin \
+# một plugin, theo đường dẫn
+zcms pack ./plugins/seo-toolkit --kind plugin \
   --key ./keys/publisher-private.pem \
   --pub ./keys/publisher-public.pem \
-  --out ./release/example-plugin-1.0.0.zcms
+  --out ./release/seo-toolkit-1.0.0.zcms
+
+# một theme, theo đường dẫn
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem \
+  --pub ./keys/publisher-public.pem \
+  --out ./release/corporate-1.0.0.zcms
 ```
 
-Với theme, dùng cùng command nhưng đổi thành `--kind theme`. Giá trị `--kind` phải khớp với manifest ở package root. Nếu bỏ `--out`, CLI tạo `<manifest.id>-<manifest.version>.zcms` trong thư mục hiện tại.
+`--kind` phải khớp với manifest ở đường dẫn đó (`plugin.json` → `--kind plugin`, `theme.json` → `--kind theme`). Nếu bỏ `--out`, CLI tạo `<manifest.id>-<manifest.version>.zcms` trong thư mục hiện tại. Xem [Phát hành package](/vi/marketplace/publishing/) để biết toàn bộ quy trình sign–pack–submit.
 
 Nếu dùng `--out`, thư mục cha như `./release` phải tồn tại trước khi chạy command; CLI chỉ tạo file `.zcms`, không tự tạo thư mục cha.
 

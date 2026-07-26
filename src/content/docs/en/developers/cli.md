@@ -129,16 +129,23 @@ The key-material rule is not tidiness. `keygen` writes your private key into the
 
 ## 4. Pack and publisher-sign the extension
 
-For a plugin:
+The first argument is **the path to the theme or plugin you are packing** — `pack` archives that one directory and signs it. Use `.` when your shell is already inside it, or point at it explicitly:
 
 ```bash
-zcms pack . --kind plugin \
+# a plugin, by path
+zcms pack ./plugins/seo-toolkit --kind plugin \
   --key ./keys/publisher-private.pem \
   --pub ./keys/publisher-public.pem \
-  --out ./release/example-plugin-1.0.0.zcms
+  --out ./release/seo-toolkit-1.0.0.zcms
+
+# a theme, by path
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem \
+  --pub ./keys/publisher-public.pem \
+  --out ./release/corporate-1.0.0.zcms
 ```
 
-For a theme, use the same command with `--kind theme`. If `--out` is omitted, the output filename is `<manifest.id>-<manifest.version>.zcms` in the current directory.
+`--kind` must match the manifest at that path (`plugin.json` → `--kind plugin`, `theme.json` → `--kind theme`). If `--out` is omitted, the output filename is `<manifest.id>-<manifest.version>.zcms` in the current directory. See [Publish a package](/en/marketplace/publishing/) for the full sign-pack-submit workflow.
 
 The command prints the package id, version, file size and checksum. This artifact has a valid publisher signature, but it is not installable until Marketplace has reviewed and co-signed it.
 
