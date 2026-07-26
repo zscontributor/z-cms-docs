@@ -12,7 +12,7 @@ sidebar:
 CLI yêu cầu Node.js 22 trở lên. Cài package chính thức từ npm:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 Package tên là `@zcmsorg/cli`; lệnh nó cài ra là `zcms`.

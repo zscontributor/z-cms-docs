@@ -38,7 +38,7 @@ pnpm verify
 You do not need this repository to build a plugin or a theme. Install the CLI and scaffold one:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 zcms init
 ```
 

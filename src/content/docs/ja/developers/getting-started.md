@@ -38,7 +38,7 @@ pnpm verify
 プラグインやテーマを作るために、このリポジトリをチェックアウトする必要はありません。CLI をインストールして、プロジェクトのひな型を作成します。
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 zcms init
 ```
 

@@ -12,7 +12,7 @@ Plugins run in a V8 isolate and can only access capabilities declared by the pac
 Install Node.js 22+, pnpm 10+, and the `zcms` CLI:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 ## Step 1: Scaffold the project

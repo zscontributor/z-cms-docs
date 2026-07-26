@@ -12,7 +12,7 @@ Theme định nghĩa cách `site-runtime` hiển thị website. Theme chỉ đư
 Cài Node.js 22+, pnpm 10+ và `zcms` CLI:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 ## Bước 1: Tạo project mẫu

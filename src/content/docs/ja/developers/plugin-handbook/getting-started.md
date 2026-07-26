@@ -12,7 +12,7 @@ sidebar:
 Node.js 22+、pnpm 10+ と `zcms` CLI を用意します。
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 ## ステップ 1: プロジェクトのひな型を作成する

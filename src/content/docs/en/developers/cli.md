@@ -10,7 +10,7 @@ sidebar:
 ## Install
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 The package is `@zcmsorg/cli`; the command it installs is `zcms`. It requires Node.js 22 or newer.

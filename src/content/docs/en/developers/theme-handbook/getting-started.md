@@ -12,7 +12,7 @@ A theme controls how `site-runtime` renders a website. Themes depend only on `@z
 Install Node.js 22+, pnpm 10+, and the `zcms` CLI:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 ## Step 1: Scaffold the project

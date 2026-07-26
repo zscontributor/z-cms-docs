@@ -38,7 +38,7 @@ pnpm verify
 Bạn không cần checkout repository này để viết plugin hay theme. Chỉ cần cài CLI và scaffold:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 zcms init
 ```
 

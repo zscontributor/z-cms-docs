@@ -12,7 +12,7 @@ Plugin chạy trong V8 isolate và chỉ có thể sử dụng những capabilit
 Cài Node.js 22+, pnpm 10+ và `zcms` CLI:
 
 ```bash
-npm install -g @zcmsorg/cli
+npm install -g @zcmsorg/cli@latest
 ```
 
 ## Bước 1: Tạo project mẫu
