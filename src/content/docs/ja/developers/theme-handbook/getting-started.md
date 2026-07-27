@@ -141,7 +141,7 @@ pnpm build
 
 型チェック、lint、ユニットテスト、アクセシビリティチェック、ビジュアルリグレッションテストを実行します。その後、次の手順でリリース用ファイルを作成します。
 
-1. マニフェストの `version` と `changelog` ノートを更新する。
+1. マニフェストの `changelog` ノートを更新する。`version` はそのままにしておく。`zcms pack`（ステップ 4）がバージョンを刻印し、マニフェストを自動で進める。特定のバージョンが必要な場合は `--set-version` を渡す。
 2. Commit 済み lockfile を使い、clean checkout から build する。
 3. Publisher key pair がない場合は、一度だけ生成する。
 

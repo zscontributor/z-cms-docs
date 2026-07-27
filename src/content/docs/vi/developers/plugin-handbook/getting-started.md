@@ -118,7 +118,7 @@ Chạy typecheck, lint và test script của project. Sửa toàn bộ lỗi tr�
 
 ## Bước 6: Build release package
 
-1. Cập nhật version cuối cùng trong manifest và `package.json`.
+1. Hãy để `zcms pack` (bước 5) lo phần version — nó đóng dấu version hiện tại rồi tăng lên, giữ cho manifest và `package.json` đồng bộ với nhau; truyền `--set-version` để cố định một version chính xác.
 2. Cập nhật ghi chú `changelog` trong manifest và phần công bố quyền.
 3. Build từ clean checkout bằng lockfile đã commit.
 4. Nếu chưa có cặp khóa của nhà phát hành, hãy tạo một lần bằng:
@@ -146,7 +146,7 @@ Chạy typecheck, lint và test script của project. Sửa toàn bộ lỗi tr�
 
 7. Lưu checksum do `zcms pack` in ra.
 
-`zcms pack` tự loại `src`, `node_modules`, `.git`, `.env`, source map và cấu hình công cụ build. CLI sắp xếp các mục và đưa timestamp của archive về 0 để cùng một thư mục build tạo ra package giống hệt nhau.
+`zcms pack` tự loại `src`, `node_modules`, `.git`, `.env`, source map và cấu hình công cụ build. CLI sắp xếp các mục và đưa timestamp của archive về 0 để cùng một thư mục build tạo ra package giống hệt nhau — hãy thêm `--no-bump` khi bạn pack lại để kiểm tra điều này, để version không bị tăng giữa các lần chạy.
 
 Kết quả xác minh ở bước này phải có `publisher signature : VALID`. Dòng `marketplace signature : not checked` là bình thường vì package chưa được Marketplace kiểm duyệt và ký thêm; runtime vẫn từ chối package chỉ có chữ ký của nhà phát hành.
 

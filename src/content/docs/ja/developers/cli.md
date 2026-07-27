@@ -25,8 +25,9 @@ zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
           [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
 zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--bump patch|minor|major] [--no-bump] [--set-version <semver>]
           [--operator-key <private.pem>] [--out <file>]
-zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms verify [<file.zcms>] [--marketplace-key <public.pem>]
 zcms help [--lang en|ja|vi]
 ```
 
@@ -155,6 +156,27 @@ zcms pack ./themes/corporate --kind theme \
 
 コマンドはパッケージ ID、バージョン、ファイルサイズ、チェックサムを出力します。この時点では公開者の署名だけがあり、Marketplace の審査と署名が完了するまではインストールできません。
 
+### バージョンは自動で上がる
+
+リリースの合間にバージョンを手で編集する必要はありません。`pack` は現在マニフェストが宣言しているバージョンでパッケージ化し、その後そのバージョンを進めて `theme.json`/`plugin.json` に書き戻します。`package.json` があればそちらにも書き込むため、2 つがずれることはありません。したがって、ひな型で作成したばかりの `0.1.0` は `0.1.0` **として** パッケージ化され、マニフェストは次のパッケージ化に備えて `0.1.1` に更新されます。
+
+```bash
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem --pub ./keys/publisher-public.pem
+# version : packed 1.0.0; theme.json advanced to 1.0.1 for the next pack
+```
+
+既定の動作は 3 つのフラグで上書きできます。
+
+| Flag | Effect |
+| --- | --- |
+| *(none)* | 現在のバージョンでパッケージ化し、その後 **patch** 番号を進める |
+| `--bump minor` / `--bump major` | patch ではなく minor または major 番号を進める |
+| `--set-version <semver>` | 指定したバージョンでパッケージ化する（`--no-bump` も併用しない限り、その後もバージョンを進める） |
+| `--no-bump` | 現在のバージョンでパッケージ化し、マニフェストは変更しない |
+
+出力名 `<manifest.id>-<manifest.version>.zcms` には、進めた後ではなく *実際にパッケージ化した* バージョンが使われます。パッケージ化に失敗した場合はバージョンがロールバックされます。失敗したパッケージ化が中途半端にバージョンを進めたまま残ることはありません。
+
 ### サイドロード署名（セルフホスト専用）
 
 Marketplace で公開する場合は読み飛ばして構いません。**自分の** Z-CMS インスタンスを運用していて、Marketplace を経由せずに拡張機能をインストールしたい場合は、`--operator-key` を追加します。
@@ -172,6 +194,8 @@ zcms pack . --kind theme \
 ```bash
 zcms verify ./release/example-plugin-1.0.0.zcms
 ```
+
+ファイルを指定せずに実行すると、`zcms verify` はカレントディレクトリで最も新しい `.zcms` を選びます。パッケージ化したファイル名はバージョンが上がるたびに変わるため、いちいち入力する必要がほとんどなく便利です。
 
 この段階では `--marketplace-key` を指定しません。`publisher signature : VALID` と表示されれば、内容のチェックサムと公開者の署名は有効です。`marketplace signature : not checked` は、まだ Marketplace へ提出していないため正常な表示です。
 

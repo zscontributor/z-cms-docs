@@ -59,7 +59,7 @@ Nếu phiên bản mới bổ sung permission hoặc thay đổi cách xử lý 
 
 ## Bước 3: Đóng gói và ký file phát hành
 
-Build từ một bản checkout sạch, dùng lockfile đã commit và đúng phiên bản bộ công cụ được ghi trong tài liệu của project. Sau đó chạy kiểm tra kiểu dữ liệu, lint và unit test, rồi xác nhận phiên bản trong manifest và entry đã build là chính xác.
+Build từ một bản checkout sạch, dùng lockfile đã commit và đúng phiên bản bộ công cụ được ghi trong tài liệu của project. Sau đó chạy kiểm tra kiểu dữ liệu, lint và unit test, rồi xác nhận entry đã build là chính xác. Bạn không tự sửa version bằng tay — `zcms pack` sẽ đóng dấu và tăng version giúp bạn (xem **`pack` tự đặt version** bên dưới).
 
 ### Trỏ `pack` tới đúng theme hoặc plugin cần phát hành
 
@@ -92,6 +92,10 @@ zcms pack ./plugins/seo-toolkit --kind plugin \
 
 Đường dẫn có thể là tuyệt đối (`/home/me/themes/corporate`) hoặc tương đối (`./themes/corporate`, hoặc `.` khi shell của bạn đang ở trong thư mục đó) — chỉ cần trỏ đúng tới thư mục chứa manifest. Mỗi lệnh chỉ nhận một đường dẫn: muốn phát hành nhiều extension thì chạy `zcms pack` một lần cho mỗi cái. Nếu bỏ qua `--out`, file sẽ được ghi vào thư mục hiện tại với tên `<manifest.id>-<manifest.version>.zcms`.
 
+### `pack` tự đặt version
+
+Bạn không tự sửa version bằng tay trước khi phát hành. `zcms pack` đóng gói đúng version mà manifest đang khai báo, rồi tăng version đó lên — mặc định là patch — và ghi số mới trở lại manifest và `package.json`, để bản phát hành tiếp theo đã là một version mới. Truyền `--bump minor|major` để tăng bước lớn hơn, `--set-version <semver>` để cố định một version chính xác, hoặc `--no-bump` để giữ nguyên. Tên file `<manifest.id>-<manifest.version>.zcms` dùng version đã được đóng gói; nếu pack thất bại, version được rollback.
+
 ### Việc ký diễn ra ngay trong `pack`
 
 Đóng gói **chính là bước ký** — không có lệnh `zcms sign` riêng. `--key` là khóa **riêng** của nhà phát hành, và `zcms pack` dùng nó để ký lên checksum nội dung của package khi ghi file; `--pub` nhúng khóa **công khai** tương ứng để người xác minh kiểm tra được chữ ký đó. Cả hai đều lấy từ Bước 1. Đừng để khóa riêng trên máy dùng chung hay trong log CI; trình đóng gói không bao giờ đưa file `*.pem` vào archive, nhưng nó không cứu được một khóa đã bị bạn dán ra ngoài.
@@ -106,7 +110,7 @@ Xác minh chữ ký nhà phát hành trên đúng file bạn sẽ gửi:
 zcms verify ./release/corporate-1.0.0.zcms
 ```
 
-Sau đó đóng gói cùng thư mục thêm một lần nữa để xác nhận bản build có thể tái tạo; CLI sắp xếp các tệp và đặt timestamp của archive về 0 nên checksum phải giống lần đầu. Nếu hai checksum khác nhau, hãy loại bỏ dữ liệu đầu vào không ổn định như timestamp, thứ tự tệp thay đổi hoặc dependency chưa được cố định phiên bản trước khi gửi.
+Sau đó đóng gói cùng thư mục thêm một lần nữa để xác nhận bản build có thể tái tạo. Vì `pack` tăng version sau mỗi lần chạy, hãy thêm `--no-bump` vào cả hai lần pack để giữ version cố định giữa chúng; CLI sắp xếp các tệp và đặt timestamp của archive về 0 nên checksum phải giống lần đầu. Nếu hai checksum khác nhau, hãy loại bỏ dữ liệu đầu vào không ổn định như timestamp, thứ tự tệp thay đổi hoặc dependency chưa được cố định phiên bản trước khi gửi.
 
 ## Bước 4: Gửi kiểm duyệt
 
@@ -140,9 +144,8 @@ Khi người kiểm duyệt yêu cầu thay đổi:
 
 1. Đọc lý do từ chối và phát hiện của trình quét.
 2. Cập nhật source, test và manifest.
-3. Tăng phiên bản.
-4. Build, ký và xác minh file `.zcms` mới.
-5. Gửi phiên bản mới.
+3. Build, ký và xác minh file `.zcms` mới — `zcms pack` tự đóng dấu version tiếp theo (manifest đã tự tăng sau lần pack trước của bạn).
+4. Gửi phiên bản mới.
 
 Mỗi phiên bản là bất biến. Nếu tải lên nội dung khác dưới một phiên bản đã tồn tại, package sẽ bị từ chối; nếu tải lại đúng nội dung cũ, kết quả kiểm duyệt trước đó được giữ nguyên.
 

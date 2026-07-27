@@ -56,8 +56,9 @@ zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
           [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
 zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--bump patch|minor|major] [--no-bump] [--set-version <semver>]
           [--operator-key <private.pem>] [--out <file>]
-zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms verify [<file.zcms>] [--marketplace-key <public.pem>]
 zcms help [--lang en|ja|vi]
 ```
 
@@ -190,6 +191,27 @@ Nếu dùng `--out`, thư mục cha như `./release` phải tồn tại trước
 
 Command in ra ID package, phiên bản, kích thước tệp và checksum. Package này đã có chữ ký của nhà phát hành nhưng chưa thể cài đặt cho đến khi Marketplace kiểm duyệt và thêm chữ ký.
 
+### Version tự tăng
+
+Bạn không tự sửa version bằng tay giữa các lần phát hành. `pack` đóng gói đúng version mà manifest đang khai báo, rồi tăng version đó lên và ghi lại vào `theme.json`/`plugin.json` — và vào `package.json` nếu file này tồn tại, để hai bên không bao giờ lệch nhau. Vì vậy một project vừa scaffold ở `0.1.0` sẽ được pack **thành** `0.1.0`, còn manifest được để lại ở `0.1.1`, sẵn sàng cho lần pack tiếp theo:
+
+```bash
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem --pub ./keys/publisher-public.pem
+# version : packed 1.0.0; theme.json advanced to 1.0.1 for the next pack
+```
+
+Ba flag ghi đè hành vi mặc định:
+
+| Flag | Tác dụng |
+| --- | --- |
+| *(none)* | đóng gói version hiện tại, rồi tăng số **patch** |
+| `--bump minor` / `--bump major` | tăng số minor hoặc major thay vì patch |
+| `--set-version <semver>` | đóng gói một version chính xác (vẫn tăng version sau đó trừ khi có thêm `--no-bump`) |
+| `--no-bump` | đóng gói version hiện tại và giữ nguyên manifest |
+
+Tên file output `<manifest.id>-<manifest.version>.zcms` dùng version *đã được đóng gói*, không phải version đã tăng. Nếu pack thất bại, version được rollback — một lần pack thất bại không bao giờ để lại một lần tăng version dở dang.
+
 ### Chữ ký sideload (chỉ cho self-hosted)
 
 Nhà phát hành lên Marketplace có thể bỏ qua phần này. Nếu bạn tự vận hành instance Z-CMS **của riêng mình** và muốn cài extension mà không qua Marketplace, hãy thêm `--operator-key`:
@@ -207,6 +229,8 @@ Lệnh này đóng thêm một chữ ký thứ hai — chữ ký **operator**. M
 ```bash
 zcms verify ./release/example-plugin-1.0.0.zcms
 ```
+
+Khi gọi mà không kèm file, `zcms verify` chọn file `.zcms` mới nhất trong thư mục hiện tại — tiện lợi vì tên file được pack thay đổi mỗi lần version tăng lên, nên bạn hiếm khi phải gõ đầy đủ tên file.
 
 Ở bước này không truyền `--marketplace-key`. CLI kiểm tra checksum và publisher signature, nhưng sẽ hiển thị `marketplace signature : not checked`. Đây là kết quả bình thường đối với package vừa được bạn pack và chưa gửi lên Marketplace.
 

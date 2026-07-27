@@ -141,7 +141,7 @@ Chuyển sang theme khác rồi kích hoạt lại để xác nhận quá trình
 
 Chạy typecheck, lint, unit test, accessibility check và visual regression test. Sau đó:
 
-1. Cập nhật `version` và ghi chú `changelog` trong manifest.
+1. Cập nhật ghi chú `changelog` trong manifest. Đừng động vào `version` — `zcms pack` (bước 4) sẽ đóng dấu và tăng version trong manifest giúp bạn; truyền `--set-version` nếu bạn cần một version cụ thể.
 2. Build từ clean checkout bằng lockfile đã commit.
 3. Tạo cặp khóa của nhà phát hành một lần nếu chưa có:
 
