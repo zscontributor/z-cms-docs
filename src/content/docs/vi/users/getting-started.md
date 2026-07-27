@@ -13,7 +13,7 @@ Tài liệu giữ nguyên tên command, API, field trong manifest và label trê
 
 ## Đăng nhập
 
-Trong môi trường local, mở `http://localhost:3101` để truy cập trang Admin. Với dữ liệu mẫu mặc định, đăng nhập bằng email `admin@z-cms.org` và mật khẩu `admin123`. Nếu tài khoản đã bật xác thực hai bước, hãy nhập thêm mã từ ứng dụng xác thực.
+Trên một instance đã triển khai, trang Admin nằm ngay dưới tên miền của website tại `/admin` — ví dụ `https://ten-site-cua-ban.com/admin`. Trong môi trường phát triển local thì Admin chạy trên cổng riêng: mở `http://localhost:3101`. Với dữ liệu mẫu mặc định, đăng nhập bằng email `admin@z-cms.org` và mật khẩu `admin123`. Nếu tài khoản đã bật xác thực hai bước, hãy nhập thêm mã từ ứng dụng xác thực.
 
 ## Các bước đầu tiên
 

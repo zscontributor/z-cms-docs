@@ -9,7 +9,7 @@ Z-CMS Admin is where you manage content, media, themes, plugins and site members
 
 ## Sign in
 
-In a local environment, open `http://localhost:3101` to access Admin. With the default sample data, sign in with `admin@z-cms.org` and the password `admin123`. If two-factor authentication is enabled, enter the current code from your authenticator app after the password.
+On a deployed instance, Admin lives under your site's own domain at `/admin` — for example `https://your-site.com/admin`. In a local development environment it runs on its own port instead: open `http://localhost:3101`. With the default sample data, sign in with `admin@z-cms.org` and the password `admin123`. If two-factor authentication is enabled, enter the current code from your authenticator app after the password.
 
 ## First steps
 
