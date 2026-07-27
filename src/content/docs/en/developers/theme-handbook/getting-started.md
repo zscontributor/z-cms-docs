@@ -141,7 +141,7 @@ Switch away from the theme and back again to confirm that activation does not de
 
 Run typecheck, lint, unit tests, accessibility checks and visual regression tests. Then:
 
-1. Update `version` and the `changelog` note in the manifest.
+1. Update the `changelog` note in the manifest. Leave `version` alone — `zcms pack` (step 4) stamps it and advances the manifest for you; pass `--set-version` if you need a specific one.
 2. Build from a clean checkout with the committed lockfile.
 3. Generate the publisher key pair once if needed:
 

@@ -25,8 +25,9 @@ zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
           [--version <semver>] [--yes]
 zcms keygen [--out <dir>]
 zcms pack <dir> --kind theme|plugin --key <private.pem> --pub <public.pem>
+          [--bump patch|minor|major] [--no-bump] [--set-version <semver>]
           [--operator-key <private.pem>] [--out <file>]
-zcms verify <file.zcms> [--marketplace-key <public.pem>]
+zcms verify [<file.zcms>] [--marketplace-key <public.pem>]
 zcms help [--lang en|ja|vi]
 ```
 
@@ -149,6 +150,27 @@ zcms pack ./themes/corporate --kind theme \
 
 The command prints the package id, version, file size and checksum. This artifact has a valid publisher signature, but it is not installable until Marketplace has reviewed and co-signed it.
 
+### Versions bump themselves
+
+You do not hand-edit the version between releases. `pack` ships the version your manifest currently declares, then advances that version and writes it back to `theme.json`/`plugin.json` — and to `package.json` when it is present, so the two never drift. A freshly scaffolded `0.1.0` therefore packs **as** `0.1.0`, and the manifest is left at `0.1.1`, ready for the next pack:
+
+```bash
+zcms pack ./themes/corporate --kind theme \
+  --key ./keys/publisher-private.pem --pub ./keys/publisher-public.pem
+# version : packed 1.0.0; theme.json advanced to 1.0.1 for the next pack
+```
+
+Three flags override the default:
+
+| Flag | Effect |
+| --- | --- |
+| *(none)* | ship the current version, then advance the **patch** number |
+| `--bump minor` / `--bump major` | advance the minor or major number instead of the patch |
+| `--set-version <semver>` | ship an exact version (still advances afterward unless `--no-bump` is also given) |
+| `--no-bump` | ship the current version and leave the manifest unchanged |
+
+The `<manifest.id>-<manifest.version>.zcms` output name uses the version that was *shipped*, not the advanced one. If a pack fails, the version is rolled back — a failed pack never leaves a half-applied bump behind.
+
 ### Sideload signature (self-hosted only)
 
 Marketplace publishers can skip this. If you run your **own** Z-CMS instance and want to install an extension without going through Marketplace, add `--operator-key`:
@@ -166,6 +188,8 @@ This stamps a second, **operator** signature. An instance whose runtimes pin the
 ```bash
 zcms verify ./release/example-plugin-1.0.0.zcms
 ```
+
+Called with no file, `zcms verify` picks the newest `.zcms` in the current directory — convenient because the packed filename moves each time the version advances, so you rarely need to type it out.
 
 Without `--marketplace-key`, `verify` checks the payload checksum and publisher signature. A failed verification exits with a non-zero status.
 

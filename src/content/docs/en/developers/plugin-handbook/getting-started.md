@@ -118,7 +118,7 @@ Run the project's typecheck, lint and test scripts. Fix every failure before pac
 
 ## Step 6: Build the release package
 
-1. Set the final version in the manifest and `package.json`.
+1. Leave the version to `zcms pack` (step 5) — it stamps the current version and advances it, keeping the manifest and `package.json` in sync; pass `--set-version` to pin an exact one.
 2. Update the `changelog` note in the manifest and the permission disclosure.
 3. Build from a clean checkout with the committed lockfile.
 4. Generate the publisher key pair once if you do not already have one:
@@ -144,7 +144,7 @@ Run the project's typecheck, lint and test scripts. Fix every failure before pac
 
 7. Record the checksum printed by `zcms pack`.
 
-`zcms pack` excludes `src`, `node_modules`, `.git`, `.env`, source maps and build-tool configuration. It sorts entries and zeroes archive timestamps so packing the same built directory produces identical bytes.
+`zcms pack` excludes `src`, `node_modules`, `.git`, `.env`, source maps and build-tool configuration. It sorts entries and zeroes archive timestamps so packing the same built directory produces identical bytes — add `--no-bump` when you re-pack to check this, so the version is not advanced between runs.
 
 The first `zcms verify` checks the publisher signature only. Marketplace adds its own co-signature during intake; a runtime still refuses the publisher-only package.
 

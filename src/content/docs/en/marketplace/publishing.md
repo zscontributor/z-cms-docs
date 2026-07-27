@@ -41,7 +41,7 @@ An update that adds permissions or changes data processing must call out the cha
 
 ## Step 3: Pack and sign one release artifact
 
-Build from a clean checkout using the committed lockfile and the toolchain version documented by the project, then run typecheck, lint and unit tests and confirm that the manifest version and built entry are correct.
+Build from a clean checkout using the committed lockfile and the toolchain version documented by the project, then run typecheck, lint and unit tests and confirm that the built entry is correct. You do not hand-edit the version — `zcms pack` stamps and advances it for you (see **`pack` sets the version** below).
 
 ### Point `pack` at the theme or plugin you are publishing
 
@@ -74,6 +74,10 @@ zcms pack ./plugins/seo-toolkit --kind plugin \
 
 The path may be absolute (`/home/me/themes/corporate`) or relative (`./themes/corporate`, or `.` when your shell is already inside the directory) — it just has to resolve to the directory that holds the manifest. Pass one path per command: to publish several extensions, run `zcms pack` once for each. If `--out` is omitted, the file is written to the current directory as `<manifest.id>-<manifest.version>.zcms`.
 
+### `pack` sets the version
+
+You do not edit the version by hand before publishing. `zcms pack` ships the version the manifest currently declares, then advances it — patch by default — and writes the new number back to the manifest and to `package.json`, so the next release is already a new version. Pass `--bump minor|major` for a larger step, `--set-version <semver>` to pin an exact one, or `--no-bump` to hold it. The `<manifest.id>-<manifest.version>.zcms` filename uses the version that was shipped; if a pack fails, the version is rolled back.
+
 ### Signing happens inside `pack`
 
 Packing **is** the signing step — there is no separate `zcms sign` command. `--key` is your publisher **private** key, and `zcms pack` signs the package's payload checksum with it as it writes the file; `--pub` embeds the matching **public** key so a verifier can check that signature. Both come from Step 1. Keep the private key off shared machines and out of CI logs; the packer never ships `*.pem` files inside the archive, but it cannot protect a key you paste somewhere.
@@ -88,7 +92,7 @@ Verify the publisher signature on the exact file you will submit:
 zcms verify ./release/corporate-1.0.0.zcms
 ```
 
-Then pack the same directory a second time to confirm the build is reproducible; the CLI sorts files and zeroes archive timestamps, so the checksum should match the first run. If the two checksums differ, find and remove nondeterministic inputs such as timestamps, unordered file lists or unpinned dependencies before submitting.
+Then pack the same directory a second time to confirm the build is reproducible. Because `pack` advances the version on each run, add `--no-bump` to both packs so the version is held fixed across them; the CLI sorts files and zeroes archive timestamps, so the checksum should match the first run. If the two checksums differ, find and remove nondeterministic inputs such as timestamps, unordered file lists or unpinned dependencies before submitting.
 
 ## Step 4: Submit for review
 
@@ -122,9 +126,8 @@ When changes are requested:
 
 1. Read the rejection note and scanner findings.
 2. Update source, tests and manifest.
-3. Increment the version.
-4. Build, sign and verify a new `.zcms` artifact.
-5. Submit the new version.
+3. Build, sign and verify a new `.zcms` artifact — `zcms pack` stamps the next version automatically (the manifest already advanced after your previous pack).
+4. Submit the new version.
 
 Versions are immutable. Re-uploading different bytes under an existing version is refused; re-uploading identical bytes keeps the existing verdict.
 
