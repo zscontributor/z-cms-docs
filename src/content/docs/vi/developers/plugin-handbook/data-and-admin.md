@@ -246,4 +246,4 @@ Bất cứ thứ gì handler `query` của bạn trả về đều được ph�
 - Mỗi hàng được giới hạn về tenant và site hiện tại trên mọi lần đọc và ghi, bởi token và bởi Postgres RLS.
 - Các giá trị form được post bị ép kiểu và xác thực đối chiếu với kiểu cột trước khi ghi.
 
-Plugin **Customers (CRM)** đi kèm (`plugins/crm` trong mã nguồn Z-CMS) là một ví dụ hoàn chỉnh, hoạt động được của mọi thứ trên trang này.
+Hai plugin đi kèm trong mã nguồn Z-CMS là các ví dụ hoàn chỉnh, chạy được: **Customers (CRM)** (`plugins/crm`) minh hoạ bảng và màn hình admin, còn **Product Catalog** (`plugins/catalog`) bổ sung truy vấn công khai `catalog.search` và widget filter cho storefront ở Step 6.

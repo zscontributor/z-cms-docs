@@ -246,4 +246,4 @@ Anything your `query` handler returns is served to anonymous visitors. Return on
 - Each row is scoped to the current tenant and site on every read and write, by the token and by Postgres RLS.
 - Posted form values are coerced and validated against the column types before a write.
 
-The bundled **Customers (CRM)** plugin (`plugins/crm` in the Z-CMS source) is a complete, working example of everything on this page.
+Two bundled plugins in the Z-CMS source are complete, working examples: **Customers (CRM)** (`plugins/crm`) covers the admin table and screens, and **Product Catalog** (`plugins/catalog`) adds the public `catalog.search` query and the storefront filter widget from Step 6.

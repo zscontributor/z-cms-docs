@@ -246,4 +246,4 @@ JavaScript がなくても、訪問者はテーマがサーバー上でレンダ
 - 各行は、トークンと Postgres RLS によって、あらゆる読み書きで現在のテナントとサイトにスコープされる。
 - 投稿されたフォームの値は、書き込みの前にカラムの型に対して変換・検証される。
 
-同梱の **Customers (CRM)** プラグイン（Z-CMS ソース内の `plugins/crm`）は、このページのすべてを網羅する完全に動作する実例です。
+Z-CMS ソースには完全に動作する実例が 2 つ同梱されています。**Customers (CRM)**（`plugins/crm`）は管理テーブルと画面を、**Product Catalog**（`plugins/catalog`）は Step 6 の公開クエリ `catalog.search` とストアフロントのフィルタウィジェットを扱います。
