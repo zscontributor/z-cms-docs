@@ -169,6 +169,76 @@ setup: async (ctx) => {
 },
 ```
 
+## Step 6: Expose a filtered list to a theme
+
+The admin screens above are for operators. To show your data on the **public site** — a filtered product grid, a store finder, a job board — the theme needs the rows, but a theme renders on the server and ships no JavaScript, so it cannot query anything itself. The runtime bridges this: your plugin answers a **public query**, and a runtime widget fetches it from the browser and renders the result.
+
+Two pieces, mirroring the way a plugin ships a public [form](/en/developers/plugin-handbook/permissions/):
+
+**1. Your plugin implements a `query` call under a capability.** Declare the capability in the manifest and implement the fixed call named `query`. It receives the filter as `params` and returns rows (an array, or `{ items }`). Only this one call is ever reachable publicly — a visitor can never invoke an arbitrary call.
+
+```json
+{ "capabilities": ["catalog.search"] }
+```
+
+```ts
+export default definePlugin({
+  manifest: { /* … capabilities: ["catalog.search"] … */ },
+  calls: {
+    // Reached at /plugin-query/catalog.search?q=serum&stage=active
+    query: async ({ params }, ctx) => {
+      const where: Record<string, unknown> = {};
+      if (params.stage) where.stage = params.stage;                       // equality
+      if (params.q) where.title = { op: "contains", value: params.q };    // substring
+      const items = await ctx.db.select("p_com_example_plugin_shop__products", {
+        where,
+        orderBy: { column: "title", direction: "asc" },
+        limit: 60,
+      });
+      return { items };
+    },
+  },
+});
+```
+
+`params` is the query string, sanitized by core to a small map of strings. Your handler decides which params become filters — nothing is a filter unless you make it one, and `ctx.db` still validates every column and scopes every row to the site.
+
+**2. The theme renders a filter form and a row template.** The theme ships plain HTML marked with `data-zc-*`; the runtime widget enhances it — fetching `/plugin-query/<capability>` on submit (or, with `data-zc-auto`, as the visitor types) and rendering each returned row into the template. Values are written as **text** and links are refused unless `http(s)`/relative, so a row can never inject markup.
+
+```html
+<form data-zc-query="catalog.search" data-zc-target="#results" data-zc-auto>
+  <input name="q" type="search" placeholder="Search…" />
+  <select name="stage">
+    <option value="">All</option>
+    <option value="active">In stock</option>
+  </select>
+</form>
+
+<ul id="results">
+  <template data-zc-query-item>
+    <li>
+      <a data-zc-href="url"><span data-zc-field="title"></span></a>
+      <span data-zc-field="price"></span>
+    </li>
+  </template>
+  <li data-zc-query-empty hidden>No matches.</li>
+  <li data-zc-query-error hidden>Could not load results.</li>
+</ul>
+```
+
+The contract:
+
+- `data-zc-query="<capability>"` on the `<form>` — its `name`d inputs become the query params.
+- `data-zc-target="#sel"` points at the results container (defaults to the form's next sibling); `data-zc-auto` fetches as the visitor types; `data-zc-initial` fetches once on load.
+- A `<template data-zc-query-item>` holds one row. `data-zc-field="col"` sets that column as text; `data-zc-href="col"` sets a safe href.
+- Optional `[data-zc-query-empty]` and `[data-zc-query-error]` are shown when there are no rows / the fetch failed.
+
+With no JavaScript the visitor still sees whatever the theme rendered on the server (e.g. an unfiltered list); the widget adds the live, filtered view on top. The endpoint is read-only and rate-limited per IP.
+
+:::caution[A public query is public]
+Anything your `query` handler returns is served to anonymous visitors. Return only fields that are safe to publish — never a cost price, an email, or an internal note. A back-office list (like the customers screen above) should **not** be exposed as a public query.
+:::
+
 ## What core enforces
 
 - The table name is inside your prefix; core emits the DDL, the plugin never writes SQL.

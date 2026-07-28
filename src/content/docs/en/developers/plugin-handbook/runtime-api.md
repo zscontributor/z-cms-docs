@@ -115,7 +115,21 @@ await ctx.db.update("…__notes", { body: "edited" }, { id });
 await ctx.db.delete("…__notes", { id });
 ```
 
-See [Data tables and admin screens](/en/developers/plugin-handbook/data-and-admin/) for declaring the table and giving it a menu.
+**Filtering.** A bare value in `where` is equality (`{ stage: "lead" }`). For anything else, use the long form `{ column: { op, value } }`. The operators are `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `contains`, `startsWith`, and `in`. Conditions are AND-ed; there is no `OR`, no raw SQL, and every value is a bound parameter — the operator only picks the comparison.
+
+```ts
+await ctx.db.select("…__customers", {
+  where: {
+    stage: { op: "in", value: ["lead", "qualified"] },
+    name: { op: "contains", value: "an" },   // case-insensitive substring
+    deal_value: { op: "gte", value: 100 },
+  },
+  orderBy: { column: "deal_value", direction: "desc" },
+  limit: 50,
+});
+```
+
+See [Data tables and admin screens](/en/developers/plugin-handbook/data-and-admin/) for declaring the table, giving it a menu, and exposing a filtered list to a theme.
 
 ### `ctx.content` — read site content
 

@@ -115,7 +115,21 @@ await ctx.db.update("…__notes", { body: "edited" }, { id });
 await ctx.db.delete("…__notes", { id });
 ```
 
-テーブルの宣言とメニューの付与については [データテーブルと管理画面](/ja/developers/plugin-handbook/data-and-admin/) を参照してください。
+**フィルタリング。** `where` 内の裸の値は等価です（`{ stage: "lead" }`）。それ以外にはロングフォーム `{ column: { op, value } }` を使います。オペレータは `eq`、`neq`、`lt`、`lte`、`gt`、`gte`、`contains`、`startsWith`、`in` です。条件は AND で結合され、`OR` も生の SQL もなく、すべての値はバインドされたパラメータです。オペレータは比較方法を選ぶだけです。
+
+```ts
+await ctx.db.select("…__customers", {
+  where: {
+    stage: { op: "in", value: ["lead", "qualified"] },
+    name: { op: "contains", value: "an" },   // case-insensitive substring
+    deal_value: { op: "gte", value: 100 },
+  },
+  orderBy: { column: "deal_value", direction: "desc" },
+  limit: 50,
+});
+```
+
+テーブルの宣言、メニューの付与、フィルタ済み一覧のテーマへの公開については [データテーブルと管理画面](/ja/developers/plugin-handbook/data-and-admin/) を参照してください。
 
 ### `ctx.content` — サイトコンテンツを読む
 
