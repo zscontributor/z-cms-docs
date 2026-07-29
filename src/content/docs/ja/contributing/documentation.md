@@ -2,7 +2,7 @@
 title: ドキュメントに貢献する
 description: Z-CMS ドキュメントの作成とレビュー方法です。
 sidebar:
-  order: 1
+  order: 2
 ---
 
 ドキュメントは Markdown または MDX で管理し、pull request でレビューします。
