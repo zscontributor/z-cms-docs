@@ -2,7 +2,7 @@
 title: Contribute to the documentation
 description: Write and review documentation for Z-CMS.
 sidebar:
-  order: 1
+  order: 2
 ---
 
 Documentation is stored as Markdown or MDX and reviewed through pull requests.

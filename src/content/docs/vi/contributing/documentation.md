@@ -2,7 +2,7 @@
 title: Đóng góp tài liệu
 description: Viết và kiểm duyệt tài liệu cho Z-CMS.
 sidebar:
-  order: 1
+  order: 2
 ---
 
 Tài liệu được lưu dưới dạng Markdown/MDX và được kiểm duyệt qua pull request.
