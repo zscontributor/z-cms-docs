@@ -1,28 +1,28 @@
 ---
-title: Cung cấp dữ liệu demo
-description: Khai báo thiết lập, loại nội dung, nội dung và menu để quản trị viên có thể seed từ theme.
+title: Cung cấp dữ liệu mẫu
+description: Khai báo cấu hình, loại nội dung, trang và menu mẫu để quản trị viên tạo từ theme.
 sidebar:
   order: 4
 ---
 
-Theme có thể cung cấp một bộ dữ liệu demo tùy chọn trong trường `demo` của `theme.json`. Khi theme đang được kích hoạt, quản trị viên có permission `theme:configure` có thể áp dụng bộ dữ liệu này tại **Appearance → Seed demo**.
+Theme có thể cung cấp dữ liệu mẫu qua trường `demo` trong `theme.json`. Khi theme đang hoạt động, quản trị viên có quyền `theme:configure` có thể chọn **Appearance → Seed demo** để tạo dữ liệu mẫu.
 
-Bộ dữ liệu nằm trực tiếp trong `theme.json`; contract manifest hiện tại không đọc từ file `demo.json` riêng. Nhờ nằm trong manifest, dữ liệu demo cũng được đưa vào package theme đã ký.
+Dữ liệu mẫu được khai báo trực tiếp trong `theme.json`, không đọc từ tệp `demo.json` riêng. Vì nằm trong manifest, dữ liệu này cũng thuộc gói theme đã ký.
 
-:::caution[Dữ liệu demo chỉ dành cho việc dùng thử]
-Hãy thử cả thao tác seed và reseed trên website mới hoặc môi trường staging. Một lần seed có thể tạo loại nội dung, nội dung đã xuất bản, menu và thiết lập theme. Theme không được phụ thuộc vào dữ liệu demo để hiển thị và vẫn phải có trạng thái trống hữu ích.
+:::caution[Dữ liệu mẫu chỉ dành cho việc dùng thử]
+Hãy kiểm tra cả **Seed demo** (tạo dữ liệu mẫu) và **Reseed demo** (tạo lại dữ liệu mẫu) trên website mới hoặc môi trường kiểm thử. Các thao tác này có thể tạo loại nội dung, nội dung đã xuất bản, menu và cấu hình theme. Theme vẫn phải hiển thị được khi chưa có dữ liệu mẫu, với thông báo hoặc bố cục phù hợp cho trạng thái trống.
 :::
 
-## Thêm khai báo demo
+## Khai báo dữ liệu mẫu
 
 Đối tượng `demo` hỗ trợ bốn phần tùy chọn:
 
 | Trường | Mục đích |
 | --- | --- |
-| `settings` | Các giá trị được merge vào thiết lập hiện tại của theme đang kích hoạt. |
-| `contentTypes` | Các loại nội dung sẽ được tạo nếu key tương ứng chưa tồn tại. |
-| `contents` | Page, bài viết hoặc nội dung khác gắn với một loại nội dung đã khai báo. |
-| `menus` | Menu và các mục menu lồng nhau cần tạo. |
+| `settings` | Giá trị được kết hợp vào cấu hình hiện tại của theme đang hoạt động. |
+| `contentTypes` | Loại nội dung được tạo nếu chưa tồn tại khóa tương ứng. |
+| `contents` | Trang, bài viết hoặc nội dung khác thuộc loại đã khai báo. |
+| `menus` | Menu và các mục con cần tạo. |
 
 Ví dụ sau tạo trang chủ, một bài viết và menu chính:
 
@@ -116,53 +116,53 @@ Ví dụ sau tạo trang chủ, một bài viết và menu chính:
 }
 ```
 
-Mỗi mục trong `contents` phải tham chiếu đến một key có trong `demo.contentTypes`. Trình seed không tự suy ra loại nội dung từ content model hiện có của website.
+Mỗi mục trong `contents` phải tham chiếu tới một khóa đã khai báo trong `demo.contentTypes`. Hệ thống không tự suy ra loại nội dung từ cấu trúc dữ liệu sẵn có của website.
 
 ## Các trường của loại nội dung
 
 Mỗi loại nội dung bắt buộc có `key`, `name` và `pluralName`. Ngoài ra có thể khai báo:
 
-- `description`, `icon` và `fields` cho trình biên tập.
-- `isSingleton` và `isRoutable` để điều khiển hành vi.
-- `routePrefix` cho nội dung có route, chẳng hạn `blog`.
-- `hasBlocks` để bật trình biên tập block.
+- `description`, `icon` và `fields` dùng cho trình soạn thảo.
+- `isSingleton` xác định loại chỉ có một bản ghi; `isRoutable` xác định nội dung có đường dẫn riêng hay không.
+- `routePrefix` là tiền tố đường dẫn, chẳng hạn `blog`.
+- `hasBlocks` bật trình soạn thảo khối nội dung.
 
-Nếu website đã có loại nội dung cùng key, Z-CMS dùng lại loại đó mà không thay đổi schema. Vì vậy dữ liệu demo cần tương thích với cả khai báo trong theme và loại nội dung có thể đã tồn tại dưới cùng key.
+Nếu website đã có loại nội dung cùng khóa, Z-CMS dùng lại loại đó mà không đổi cấu trúc. Vì vậy, dữ liệu mẫu cần tương thích với cả định nghĩa trong theme và loại nội dung đã tồn tại cùng khóa.
 
 ## Các trường nội dung và bản dịch
 
 Mỗi mục nội dung bắt buộc có `contentType`, `locale`, `slug` và `title`. Các trường tùy chọn gồm `translationGroup`, `excerpt`, `data`, `blocks`, `seo`, `status` và `publishedAt`.
 
-- `data` chứa giá trị cho các trường có cấu trúc của loại nội dung.
-- `blocks` dùng cùng cấu trúc tài liệu block được hiển thị bởi `ctx.renderBlocks()`.
+- `data` chứa giá trị các trường có cấu trúc của loại nội dung.
+- `blocks` dùng định dạng khối mà `ctx.renderBlocks()` có thể hiển thị.
 - `status` nhận `DRAFT`, `IN_REVIEW`, `SCHEDULED`, `PUBLISHED` hoặc `ARCHIVED`; mặc định là `PUBLISHED`.
-- `publishedAt` là chuỗi ngày giờ ISO 8601. Nếu bỏ qua, hệ thống dùng thời điểm seed.
-- Các bản dịch của cùng một nội dung phải dùng chung giá trị `translationGroup`. Nếu không khai báo, mỗi mục sẽ thuộc một nhóm bản dịch riêng.
-- Chỉ dùng slug rỗng (`""`) cho trang gốc khi phù hợp với thiết kế route của website.
+- `publishedAt` là chuỗi ngày giờ ISO 8601; nếu bỏ qua, hệ thống dùng thời điểm tạo dữ liệu mẫu.
+- Các bản dịch của cùng nội dung phải dùng chung `translationGroup`. Nếu không khai báo, mỗi mục thuộc một nhóm bản dịch riêng.
+- Chỉ dùng slug rỗng (`""`) cho trang gốc khi phù hợp với quy tắc đường dẫn của website.
 
-Chỉ dùng loại block mà theme có thể hiển thị và đặt `id` ổn định, duy nhất cho từng block.
+Chỉ dùng các loại khối mà theme hỗ trợ hiển thị; mỗi khối cần có `id` ổn định và duy nhất.
 
 ## Menu và thiết lập
 
-Mỗi menu bắt buộc có `key`, `name` và mảng `items`. Mỗi mục cần `label` và `url`; `target` và `children` đệ quy là tùy chọn. Nếu demo dùng menu để điền các vị trí của theme, key của menu phải khớp với key đã khai báo trong `menuLocations`.
+Mỗi menu cần `key`, `name` và mảng `items`. Mỗi mục cần `label` và `url`; có thể thêm `target` và các mục con lồng nhau trong `children`. Nếu muốn đặt menu mẫu vào vị trí của theme, khóa menu phải khớp khóa đã khai báo trong `menuLocations`.
 
-Các key trong `demo.settings` cũng nên tồn tại trong `settingsSchema`. Khi seed, hệ thống merge các giá trị này lên trên thiết lập hiện tại của theme; các thiết lập không liên quan vẫn được giữ nguyên.
+Các khóa trong `demo.settings` cũng nên được định nghĩa trong `settingsSchema`. Khi tạo dữ liệu mẫu, hệ thống áp dụng các giá trị này lên cấu hình hiện tại; những mục không liên quan được giữ nguyên.
 
-## Hiểu hành vi reseed
+## Điều gì xảy ra khi tạo lại dữ liệu mẫu?
 
-Thao tác **Reseed demo** chỉ thay thế nội dung và menu đã được tạo trước đó bởi chính theme đó. Nội dung thông thường của website và dữ liệu demo thuộc theme khác không bị ảnh hưởng. Các loại nội dung hiện có được giữ lại, còn thiết lập demo được merge lại.
+**Reseed demo** chỉ thay thế nội dung và menu do chính theme đó tạo trước đây. Nội dung thông thường và dữ liệu mẫu của theme khác không bị ảnh hưởng. Các loại nội dung hiện có được giữ lại, còn cấu hình mẫu được áp dụng lại.
 
-Do biên tập viên có thể đã sửa các bản ghi được seed, hãy xem reseed là thao tác phá hủy đối với dữ liệu demo của theme đó. Không hướng dẫn người dùng reseed sau khi họ đã bắt đầu sửa dữ liệu demo thành nội dung thật.
+Nếu biên tập viên đã chỉnh sửa các bản ghi mẫu, thao tác tạo lại sẽ làm mất những thay đổi đó. Không khuyến nghị **Reseed demo** khi người dùng đã chuyển dữ liệu mẫu thành nội dung thật.
 
-:::note[Seed luôn là thao tác thủ công của admin]
-Việc cài đặt hay cập nhật theme sẽ không tự động seed hoặc reseed dữ liệu demo. Khi bạn phát hành phiên bản mới có thay đổi dữ liệu demo — sửa bản dịch, thêm trang, thêm menu — những website đã seed phiên bản trước vẫn giữ nguyên dữ liệu demo hiện có cho tới khi admin mở **Appearance** và nhấn **Reseed demo** cho theme đang kích hoạt. Với bản cài mới, website không có nội dung demo nào cho tới khi admin nhấn **Seed demo**. Hãy ghi rõ điều này trong lịch sử thay đổi để người vận hành biết cần reseed mới nhận được thay đổi.
+:::note[Quản trị viên phải chủ động tạo dữ liệu mẫu]
+Cài đặt hoặc cập nhật theme không tự tạo hay tạo lại dữ liệu mẫu. Nếu bản mới sửa bản dịch, thêm trang hoặc thêm menu mẫu, website đã dùng bản cũ vẫn giữ dữ liệu hiện có cho tới khi quản trị viên chọn **Appearance → Reseed demo** cho theme đang hoạt động. Với website mới cài theme, cần chọn **Seed demo** trước. Hãy ghi rõ trong lịch sử thay đổi rằng muốn nhận dữ liệu mẫu mới, người quản trị phải chủ động tạo lại và cần lưu ý nguy cơ mất các chỉnh sửa trên dữ liệu mẫu.
 :::
 
 ## Kiểm thử trước khi đóng gói
 
 1. Kích hoạt theme trên website kiểm thử trống và chạy **Seed demo**.
-2. Kiểm tra route, block, menu, thiết lập, SEO và mọi locale.
-3. Sửa một nội dung thông thường không thuộc demo, reseed và xác nhận nội dung đó không đổi.
-4. Sửa một nội dung được seed, reseed và xác nhận hành vi thay thế đã được truyền đạt rõ ràng.
-5. Kiểm thử theme trên website không có dữ liệu demo để xác nhận các trạng thái trống.
-6. Build và đóng gói theme, sau đó cài package lên website sạch và lặp lại phép thử seed.
+2. Kiểm tra đường dẫn, khối nội dung, menu, cấu hình, SEO và mọi ngôn ngữ.
+3. Sửa một nội dung không thuộc dữ liệu mẫu, tạo lại dữ liệu mẫu và xác nhận nội dung đó không đổi.
+4. Sửa một bản ghi mẫu rồi tạo lại, kiểm tra việc thay thế và bảo đảm người dùng được cảnh báo rõ.
+5. Kiểm thử theme khi không có dữ liệu mẫu để xác nhận giao diện vẫn phù hợp.
+6. Biên dịch và đóng gói theme, cài lên website sạch rồi lặp lại kiểm thử tạo dữ liệu mẫu.

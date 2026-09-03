@@ -1,26 +1,26 @@
 ---
 title: Tổng quan kiến trúc
-description: Các component và trust boundary chính của Z-CMS.
+description: Các thành phần chính của Z-CMS và ranh giới bảo mật giữa chúng.
 sidebar:
   order: 1
 ---
 
-Z-CMS tách API, trình hiển thị website công khai, Admin, plugin runtime và worker thành các process độc lập.
+Z-CMS tách API, thành phần hiển thị website công khai, trang quản trị, môi trường thực thi plugin và bộ xử lý nền thành các tiến trình độc lập.
 
-## Các component
+## Các thành phần
 
-| Component | Trách nhiệm |
+| Thành phần | Trách nhiệm |
 | --- | --- |
-| `cms-api` | Xác thực, RBAC, nội dung, media, Marketplace và API hiển thị |
+| `cms-api` | Xác thực, phân quyền theo vai trò (RBAC), quản lý nội dung, hình ảnh và tệp, Marketplace và API phục vụ hiển thị |
 | `site-runtime` | Hiển thị website công khai bằng theme đang được kích hoạt |
-| `admin-web` | Giao diện quản trị |
-| `plugin-runtime` | Chạy plugin trong V8 isolate, không giữ credential |
-| `worker` | Xử lý media variant, email, sitemap và deferred job |
+| `admin-web` | Cung cấp giao diện quản trị |
+| `plugin-runtime` | Chạy plugin trong vùng thực thi V8 cô lập, không giữ thông tin xác thực |
+| `worker` | Xử lý ảnh, gửi email, cập nhật sơ đồ website và chạy tác vụ nền |
 
-## Trust boundary
+## Ranh giới bảo mật
 
-- Tenant isolation được thực thi bằng PostgreSQL Row-Level Security.
-- Plugin không chạy trong API process.
-- Trước khi được cài, package phải được nhà phát hành ký, sau đó được Marketplace kiểm duyệt và ký thêm. Khi cài đặt, Z-CMS xác minh cả hai chữ ký và checksum để bảo đảm package không bị thay đổi sau khi ký.
+- PostgreSQL Row-Level Security bảo đảm dữ liệu của từng tổ chức (tenant) được tách biệt.
+- Plugin chạy trong tiến trình riêng, không chạy bên trong tiến trình API.
+- Gói cài đặt phải có chữ ký của nhà phát hành, được Marketplace kiểm duyệt và ký thêm. Khi cài đặt, Z-CMS xác minh cả hai chữ ký và giá trị kiểm tra toàn vẹn (checksum) để phát hiện nội dung bị thay đổi sau khi ký.
 
-Đây là các invariant bắt buộc của nền tảng, không phải convention mà extension có thể tùy ý bỏ qua.
+Đây là các yêu cầu bắt buộc do nền tảng thực thi, không phải quy ước mà tiện ích mở rộng có thể bỏ qua.

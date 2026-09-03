@@ -42,17 +42,39 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Người dùng',
-          translations: { en: 'Users', ja: 'ユーザー' },
+          translations: { en: 'Users', ja: '利用ガイド' },
           items: [{ autogenerate: { directory: 'users', collapsed: false } }],
         },
         {
-          label: 'Developers',
-          translations: { ja: '開発者' },
-          items: [{ autogenerate: { directory: 'developers', collapsed: true } }],
+          label: 'Lập trình viên',
+          translations: { en: 'Developers', ja: '開発ガイド' },
+          items: [
+            { slug: 'developers/getting-started' },
+            {
+              label: 'Kiến thức nền tảng',
+              translations: { en: 'Core concepts', ja: '基本概念' },
+              collapsed: true,
+              items: [{ autogenerate: { directory: 'developers/core-concepts' } }],
+            },
+            {
+              label: 'Phát triển plugin',
+              translations: { en: 'Plugin handbook', ja: 'プラグイン開発' },
+              collapsed: true,
+              items: [{ autogenerate: { directory: 'developers/plugin-handbook' } }],
+            },
+            {
+              label: 'Phát triển theme',
+              translations: { en: 'Theme handbook', ja: 'テーマ開発' },
+              collapsed: true,
+              items: [{ autogenerate: { directory: 'developers/theme-handbook' } }],
+            },
+            { slug: 'developers/cli' },
+            { slug: 'developers/api-reference' },
+          ],
         },
         {
           label: 'Vận hành',
-          translations: { en: 'Operators', ja: '運用者' },
+          translations: { en: 'Operators', ja: '運用ガイド' },
           items: [{ autogenerate: { directory: 'operators', collapsed: true } }],
         },
         {
@@ -62,7 +84,7 @@ export default defineConfig({
         },
         {
           label: 'Đóng góp',
-          translations: { en: 'Contributing', ja: 'コントリビューション' },
+          translations: { en: 'Contributing', ja: '開発への参加' },
           items: [{ autogenerate: { directory: 'contributing', collapsed: true } }],
         },
       ],

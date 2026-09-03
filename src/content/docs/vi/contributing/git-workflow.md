@@ -1,36 +1,29 @@
 ---
 title: Quy trình Git (Gitflow)
-description: Mô hình nhánh của Z-CMS — làm việc trên feature, mở PR vào develop, release qua main.
+description: Làm việc trên nhánh feature, gửi pull request vào develop và phát hành từ main.
 sidebar:
   order: 1
 ---
 
-Z-CMS dùng một biến thể gọn của Gitflow. Có hai nhánh tồn tại lâu dài và hai loại
-nhánh tạm thời; mọi thay đổi đi vào sản phẩm qua **pull request (PR)**, không push
-thẳng vào nhánh chung.
+Z-CMS dùng phiên bản rút gọn của Gitflow, gồm hai nhánh lâu dài và hai loại nhánh tạm thời. Mọi thay đổi được đưa vào sản phẩm qua **pull request (PR)**, không đẩy trực tiếp lên nhánh chung.
 
 ## Các nhánh
 
-| Nhánh       | Push trực tiếp             | Merge PR                | Ghi chú        |
-| ----------- | -------------------------- | ----------------------- | -------------- |
-| `main`      | ❌ Không                    | ✅ Chỉ merge sau review | Nhánh release  |
-| `develop`   | ❌ (hoặc chỉ Lead)          | ✅ Merge qua PR         | Nhánh tích hợp |
-| `feature/*` | ✅ Chủ nhánh                | Không bắt buộc          | Nhánh thường   |
-| `hotfix/*`  | Chỉ người được phân quyền  | Có thể                  | Tùy quy trình  |
+| Nhánh | Đẩy trực tiếp | Hợp nhất PR | Mục đích |
+| --- | --- | --- | --- |
+| `main` | Không | Chỉ sau khi được rà soát | Phát hành |
+| `develop` | Không, trừ trưởng nhóm khi cần | Qua PR | Tích hợp thay đổi |
+| `feature/*` | Chủ nhánh được phép | Không bắt buộc | Phát triển tính năng hoặc sửa lỗi |
+| `hotfix/*` | Chỉ người được cấp quyền | Theo quy trình | Sửa lỗi khẩn cấp |
 
-- **`main`** — nhánh phát hành. Luôn ở trạng thái release được. Không ai push thẳng;
-  chỉ nhận merge từ `develop` (hoặc `hotfix/*`) sau khi review. Từ đây cắt release và
-  gắn tag phiên bản.
-- **`develop`** — nhánh tích hợp của cộng đồng developer. Mọi nhánh `feature/*` mở PR
-  vào đây. Push thẳng bị hạn chế (chỉ Lead khi cần).
-- **`feature/*`** — nhánh làm việc của bạn. Bạn toàn quyền push lên nhánh feature của
-  mình. Đặt tên theo việc: `feature/plugin-webhooks`, `feature/theme-dark-mode`.
-- **`hotfix/*`** — sửa gấp cho bản đã release. Chỉ người được phân quyền tạo, có thể
-  merge vào `main` (và về lại `develop`) theo quy trình.
+- **`main`:** luôn giữ ở trạng thái có thể phát hành. Chỉ nhận thay đổi đã được rà soát từ `develop` hoặc `hotfix/*`; bản phát hành và nhãn phiên bản được tạo từ đây.
+- **`develop`:** nơi tích hợp thay đổi. Các nhánh `feature/*` gửi PR vào nhánh này; chỉ trưởng nhóm được đẩy trực tiếp khi cần.
+- **`feature/*`:** nhánh làm việc của bạn. Đặt tên theo công việc, chẳng hạn `feature/plugin-webhooks` hoặc `feature/theme-dark-mode`.
+- **`hotfix/*`:** sửa khẩn cấp cho phiên bản đã phát hành. Chỉ người được phân quyền tạo và hợp nhất vào `main`, sau đó đưa thay đổi trở lại `develop` theo quy trình.
 
-## Luồng của developer
+## Quy trình dành cho lập trình viên
 
-Đây là luồng thường ngày khi bạn đóng góp một tính năng hay bản sửa lỗi.
+Khi đóng góp tính năng hoặc sửa lỗi, thực hiện các bước sau:
 
 ```bash
 # 1. Cập nhật develop mới nhất và tách nhánh feature từ đó
@@ -49,29 +42,25 @@ git push -u origin feature/ten-viec
 gh pr create --base develop
 ```
 
-Sau đó **dừng lại**: Lead (Z-SOFT) review và merge PR của bạn vào `develop`. Đừng tự
-merge vào `develop` hay `main`.
+Sau khi mở PR, chờ trưởng nhóm Z-SOFT rà soát và hợp nhất vào `develop`. Không tự hợp nhất vào `develop` hoặc `main`.
 
 ### Nguyên tắc
 
-- **Base là `develop`.** PR tính năng/sửa lỗi luôn nhắm vào `develop`, không phải `main`.
-- **Nhánh nhỏ, tập trung.** Một nhánh cho một việc — dễ review, dễ revert.
-- **Đừng tự merge.** Việc merge vào `develop` và release lên `main` do Lead phụ trách.
-- **CI phải xanh.** Chạy `pnpm build` / test tại máy trước khi mở PR; CI cũng chạy lại
-  trên PR.
-- **Đồng bộ hành vi và tài liệu.** Thay đổi hành vi sản phẩm và tài liệu của nó đi cùng
-  một PR (xem [Đóng góp tài liệu](/vi/contributing/documentation/)).
+- **Chọn nhánh đích là `develop`.** PR tính năng và sửa lỗi không nhắm trực tiếp vào `main`.
+- **Mỗi nhánh tập trung một việc.** Thay đổi nhỏ giúp dễ rà soát và hoàn tác.
+- **Không tự hợp nhất vào nhánh chung.** Trưởng nhóm phụ trách hợp nhất vào `develop` và phát hành qua `main`.
+- **Các kiểm tra phải thành công.** Chạy `pnpm build` và kiểm thử trên máy trước khi mở PR; CI sẽ kiểm tra lại trên PR.
+- **Cập nhật tài liệu cùng thay đổi sản phẩm.** Xem [Đóng góp tài liệu](/vi/contributing/documentation/).
 
-## Luồng release (do Lead thực hiện)
+## Quy trình phát hành do trưởng nhóm thực hiện
 
-Developer thường không cần làm bước này; nêu ở đây để bạn hiểu điểm đến của code.
+Lập trình viên thường không cần thực hiện phần này; đây là các bước sau khi thay đổi của bạn đã được tích hợp.
 
-1. Lead merge `develop` vào `main` qua PR sau khi review.
-2. CI trên `main` xanh.
-3. Cắt release: gắn tag phiên bản, build image, phát hành.
+1. Trưởng nhóm hợp nhất `develop` vào `main` qua PR đã được rà soát.
+2. Xác nhận CI trên `main` hoàn tất thành công.
+3. Tạo nhãn phiên bản, biên dịch image và phát hành.
 
-Nói ngắn gọn: **`feature/*` → `develop` → `main`**. Bạn phụ trách phần đầu tiên; Lead
-phụ trách phần còn lại.
+Tóm lại: **`feature/*` → `develop` → `main`**. Bạn chuẩn bị thay đổi và gửi PR vào `develop`; trưởng nhóm phụ trách hợp nhất và phát hành.
 
 ## Đặt tên commit
 

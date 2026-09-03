@@ -1,11 +1,11 @@
 ---
-title: Media
+title: Hình ảnh và tệp
 description: Tải lên, sắp xếp và sử dụng hình ảnh hoặc tệp.
 sidebar:
   order: 5
 ---
 
-Media Library sắp xếp tệp theo thư mục. Worker tạo các biến thể ảnh ở chế độ nền, vì vậy người dùng không phải chờ xử lý ảnh khi tải lên.
+Thư viện hình ảnh và tệp (Media Library) giúp bạn sắp xếp tệp theo thư mục. Tiến trình xử lý nền (worker) tạo thêm ảnh ở các kích thước khác nhau, nên quá trình tải lên không phải chờ bước xử lý này hoàn tất.
 
 ## Thao tác thường dùng
 
@@ -18,15 +18,15 @@ Không tải lên tệp chứa thông tin nhạy cảm nếu tệp đó sẽ đ�
 
 ## Duyệt, tìm kiếm và lọc
 
-Khi duyệt Media Library, bạn chỉ thấy nội dung của thư mục hiện tại; breadcrumb cho biết vị trí của thư mục đó. Tìm kiếm luôn áp dụng cho toàn bộ thư viện, không chỉ thư mục đang mở. Bạn có thể lọc riêng hình ảnh hoặc tài liệu. Mỗi trang hiển thị tối đa 24 mục.
+Khi duyệt thư viện, bạn chỉ thấy nội dung của thư mục đang mở; thanh đường dẫn phía trên cho biết vị trí của thư mục. Tìm kiếm áp dụng cho toàn bộ thư viện, không chỉ thư mục hiện tại. Bạn có thể lọc riêng hình ảnh hoặc tài liệu. Mỗi trang hiển thị tối đa 24 mục.
 
-## Thư mục và metadata
+## Thư mục và thông tin tệp
 
-Người có permission cập nhật media có thể tạo, đổi tên và di chuyển thư mục; đổi tên hoặc di chuyển tệp; chỉnh sửa văn bản thay thế. Xóa tệp hoặc thư mục yêu cầu permission `media:delete`. Trước khi xóa, hãy kiểm tra tệp có đang được nội dung, cấu hình theme hoặc logo thương hiệu sử dụng hay không.
+Người có quyền cập nhật hình ảnh và tệp có thể tạo, đổi tên, di chuyển thư mục; đổi tên hoặc di chuyển tệp; chỉnh sửa văn bản thay thế. Việc xóa tệp hoặc thư mục cần quyền `media:delete`. Trước khi xóa, hãy kiểm tra tệp có đang được dùng trong nội dung, cấu hình theme hoặc nhận diện thương hiệu của website hay không.
 
-## Biến thể ảnh
+## Ảnh được tạo ở nhiều kích thước
 
-Quá trình tải lên hoàn tất trước khi worker tạo các biến thể ảnh. Nếu ảnh gốc đã xuất hiện nhưng ảnh thu nhỏ chưa có, hãy kiểm tra **Jobs** và trạng thái worker thay vì tải lên lại nhiều lần.
+Tệp gốc được tải lên trước khi worker hoàn tất việc tạo các kích thước ảnh khác. Nếu đã có ảnh gốc nhưng chưa thấy ảnh thu nhỏ, hãy kiểm tra **Jobs** (Tác vụ) và trạng thái worker thay vì tải lại cùng một tệp nhiều lần.
 
 :::tip
 Dùng tên tệp dễ nhận biết, cấu trúc thư mục nhất quán và văn bản thay thế mô tả đúng mục đích của ảnh trong ngữ cảnh. Không nhồi từ khóa SEO vào văn bản thay thế.

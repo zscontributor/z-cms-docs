@@ -5,15 +5,15 @@ sidebar:
   order: 4
 ---
 
-Mỗi loại nội dung có một schema xác định các trường được phép sử dụng. Admin tạo trình soạn thảo từ schema này để dữ liệu luôn nhất quán.
+Mỗi loại nội dung có một định nghĩa cấu trúc dữ liệu (schema), quy định các trường được phép sử dụng. Trang quản trị tạo biểu mẫu soạn thảo dựa trên cấu trúc đó để dữ liệu được nhập nhất quán.
 
 ## Quy trình cơ bản
 
 1. Vào **Content** và chọn loại nội dung.
 2. Chọn **Create**.
-3. Nhập tiêu đề, slug, nội dung và các trường bắt buộc.
-4. Lưu **Draft** để tiếp tục chỉnh sửa hoặc chọn **Publish**.
-5. Dùng **Preview** để kiểm tra trước khi công khai.
+3. Nhập tiêu đề, phần định danh trong đường dẫn (slug), nội dung và các trường bắt buộc.
+4. Lưu **Draft** (Bản nháp) để tiếp tục chỉnh sửa.
+5. Dùng **Preview** (Xem trước) để kiểm tra, rồi chọn **Publish** (Xuất bản) khi nội dung đã sẵn sàng.
 
 ## Nội dung đa ngôn ngữ
 
@@ -29,20 +29,20 @@ Danh sách nội dung hỗ trợ tìm kiếm theo từ khóa, lọc theo trạng
 
 ## Trạng thái và quyền
 
-- **Draft** chỉ hiển thị trong Admin và bản xem trước được bảo vệ.
-- **Published** có thể hiển thị công khai nếu website cũng đã được xuất bản.
-- Author có thể tạo và sửa nội dung được phép nhưng không thể xuất bản.
-- Editor trở lên có thể xuất bản, hủy xuất bản và xóa nội dung.
+- **Draft** (Bản nháp) chỉ hiển thị trong trang quản trị và bản xem trước có kiểm soát truy cập.
+- **Published** (Đã xuất bản) có thể hiển thị công khai nếu website cũng đã được xuất bản.
+- Vai trò Author cho phép tạo và sửa nội dung trong phạm vi được cấp quyền, nhưng không cho phép xuất bản.
+- Vai trò Editor trở lên cho phép xuất bản, hủy xuất bản và xóa nội dung.
 
 Slug là một phần của URL công khai. Trước khi đổi slug của nội dung đã xuất bản, hãy kiểm tra các liên kết nội bộ và tạo chuyển hướng nếu cần.
 
-## Blocks, fields và SEO
+## Khối nội dung, trường dữ liệu và SEO
 
-Trình soạn thảo có thể gồm các trường được định nghĩa trong schema, vùng block và các trường SEO. Chỉ sử dụng những block được loại nội dung hoặc theme hỗ trợ. Hãy đặt tiêu đề và mô tả SEO riêng nếu tiêu đề bài viết không phù hợp với kết quả tìm kiếm.
+Trình soạn thảo có thể gồm các trường theo cấu trúc đã định nghĩa, vùng sắp xếp khối nội dung và các trường SEO. Chỉ sử dụng những khối được cả loại nội dung lẫn theme hỗ trợ. Hãy đặt tiêu đề và mô tả SEO riêng nếu tiêu đề bài viết không phù hợp để hiển thị trong kết quả tìm kiếm.
 
 ## Danh sách kiểm tra trước khi xuất bản
 
 - Các trường bắt buộc, slug và ngôn ngữ đã đúng.
-- Ảnh có alt text; liên kết và CTA hoạt động.
-- Giao diện trên thiết bị di động, metadata SEO và bản xem trước đã được kiểm tra.
-- Các phiên bản ngôn ngữ liên quan không trỏ nhầm ngôn ngữ hoặc nội dung cũ.
+- Ảnh có văn bản thay thế; liên kết và nút kêu gọi hành động hoạt động đúng.
+- Đã kiểm tra giao diện trên thiết bị di động, thông tin SEO và bản xem trước.
+- Liên kết giữa các bản dịch trỏ đúng ngôn ngữ và nội dung còn cập nhật.

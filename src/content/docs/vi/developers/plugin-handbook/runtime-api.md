@@ -1,26 +1,26 @@
 ---
-title: API runtime của plugin
-description: Các hook mà một plugin triển khai và các API ctx mà nó có thể gọi, kèm phạm vi (scope) mà mỗi thứ yêu cầu.
+title: API thực thi của plugin
+description: Các hàm xử lý sự kiện, API trên đối tượng ctx và quyền cần thiết để plugin sử dụng chúng.
 sidebar:
   order: 3
 ---
 
-Một plugin export một đối tượng được dựng bằng `definePlugin` từ `@zcmsorg/plugin-sdk`. Mọi thứ nó có thể *làm* là một hook mà nó triển khai; mọi thứ nó có thể *chạm tới* là một phương thức trên đối tượng `ctx` được trao cho nó. Bên trong sandbox không có `require`, không có `fs`, không có `process.env`, không có handle cơ sở dữ liệu và không có `fetch` — nếu một capability không nằm trong số các hook hay phương thức `ctx` dưới đây, plugin không thể làm điều đó.
+Plugin xuất một đối tượng được tạo bằng `definePlugin` từ `@zcmsorg/plugin-sdk`. Các hàm xử lý sự kiện (hook) xác định lúc nào plugin chạy; các phương thức trên đối tượng `ctx` xác định những tài nguyên plugin được sử dụng. Sandbox không cung cấp API hệ thống tệp, `process.env`, kết nối cơ sở dữ liệu hay `fetch`. Plugin chỉ có thể thực hiện các thao tác được hỗ trợ qua những hook và phương thức `ctx` dưới đây.
 
-Mọi phương thức `ctx` đều `async`, vì không phương thức nào chạy trong isolate của plugin: chúng là các lời gọi RPC ngược về host, và host kiểm tra lại các phạm vi (scope) đã cấp cho plugin ở mỗi lần gọi. Một plugin chưa từng yêu cầu `content:read` sẽ nhận về một từ chối từ host, chứ không phải một kiểm tra cục bộ mà nó có thể vá bỏ.
+Mọi phương thức `ctx` đều bất đồng bộ (`async`). Đây là các lời gọi RPC tới tiến trình chủ, không phải thao tác chạy trực tiếp trong vùng thực thi cô lập của plugin. Tiến trình chủ kiểm tra lại quyền ở mỗi lần gọi. Ví dụ, nếu plugin chưa được cấp `content:read`, lời gọi sẽ bị từ chối ở phía chủ; plugin không thể sửa mã kiểm tra cục bộ để vượt qua giới hạn này.
 
 ## Đối tượng plugin
 
-`definePlugin` nhận một `manifest` (xem [Xây dựng plugin đầu tiên của bạn](/vi/developers/plugin-handbook/getting-started/)) và bất kỳ hook tùy chọn nào sau đây:
+`definePlugin` nhận một `manifest` (xem [Tạo plugin đầu tiên](/vi/developers/plugin-handbook/getting-started/)) và bất kỳ hook tùy chọn nào sau đây:
 
-| Hook | Kiểu | Khi nào chạy | Ngân sách |
+| Hook | Kiểu | Khi nào chạy | Giới hạn thực thi |
 | --- | --- | --- | --- |
-| `setup(ctx)` | `() => void` | Một lần, khi plugin được kích hoạt trên một site — migration, seed dữ liệu, giá trị mặc định. | — |
-| `teardown(ctx)` | `() => void` | Một lần, khi vô hiệu hóa. Một throw ở đây được ghi log và quá trình chuyển trạng thái vẫn tiếp tục. Không phải gỡ cài đặt. | — |
-| `actions` | `{ [event]: (payload, ctx) => void }` | Bắn-và-quên, **sau khi** có việc gì đó đã xảy ra. CMS không chờ. | async |
-| `filters` | `{ [name]: (value, context, ctx) => value }` | Biến đổi một giá trị **đang trên đường truyền**; bên gọi phải chờ. Một filter chạy quá timeout sẽ bị bỏ qua và giá trị gốc được dùng. | giới hạn cứng |
-| `jobs` | `{ [name]: (payload, ctx) => void }` | Việc trì hoãn, chạy khi một `ctx.jobs.enqueue(name, payload)` trước đó được xử lý ngoài đường request. | 30s |
-| `calls` | `{ [name]: (payload, ctx) => unknown }` | Request/response — CMS gọi một cái và **chờ giá trị nó trả về**. Được tiếp cận qua capability, không qua khóa plugin. | 30s |
+| `setup(ctx)` | `() => void` | Mỗi lần kích hoạt plugin trên một website; dùng để chuyển đổi dữ liệu, tạo dữ liệu mẫu hoặc cấu hình mặc định. | — |
+| `teardown(ctx)` | `() => void` | Mỗi lần vô hiệu hóa. Nếu phát sinh ngoại lệ, hệ thống ghi nhật ký và vẫn tiếp tục chuyển trạng thái. Đây không phải bước gỡ cài đặt. | — |
+| `actions` | `{ [event]: (payload, ctx) => void }` | Xử lý sau khi sự kiện xảy ra; CMS không chờ kết quả. | Bất đồng bộ |
+| `filters` | `{ [name]: (value, context, ctx) => value }` | Biến đổi giá trị trong luồng xử lý; bên gọi chờ kết quả. Nếu quá thời gian cho phép, hệ thống bỏ qua bộ lọc và dùng giá trị gốc. | Giới hạn thời gian cố định |
+| `jobs` | `{ [name]: (payload, ctx) => void }` | Chạy tác vụ đã được đưa vào hàng đợi bằng `ctx.jobs.enqueue(name, payload)`, tách khỏi luồng xử lý yêu cầu web. | 30 giây |
+| `calls` | `{ [name]: (payload, ctx) => unknown }` | Xử lý lời gọi và trả kết quả cho CMS. Được gọi qua mã tính năng (capability), không qua mã plugin. | 30 giây |
 
 ```ts
 import { definePlugin } from "@zcmsorg/plugin-sdk";
@@ -47,15 +47,15 @@ export default definePlugin({
 });
 ```
 
-:::caution[Chỉ bốn dạng này mới làm việc]
-Một plugin không thể đặt timer, mở kết nối, hay tự chạy code. Nó phản ứng với một **action**, biến đổi một **filter**, trả lời một **call**, hoặc yêu cầu nền tảng chạy một **job** về sau. Đó là toàn bộ luồng điều khiển của một plugin.
+:::caution[Bốn cách xử lý công việc của plugin]
+Ngoài các bước khởi tạo và dọn dẹp, plugin chỉ xử lý công việc theo bốn cách: phản hồi sự kiện bằng **action**, biến đổi dữ liệu bằng **filter**, trả kết quả qua **call**, hoặc lên lịch tác vụ nền bằng **job**. Plugin không thể tự đặt bộ hẹn giờ, mở kết nối hay chạy mã độc lập với nền tảng.
 :::
 
-## Sự kiện bạn có thể hook
+## Các sự kiện và bộ lọc được hỗ trợ
 
-### Actions — bắn sau khi sự việc xảy ra, không bao giờ được await
+### Actions — xử lý sau sự kiện, không chờ kết quả
 
-| Event | Payload |
+| Sự kiện | Dữ liệu truyền vào |
 | --- | --- |
 | `content.created` | `siteId, contentId, contentType, title` |
 | `content.updated` | `siteId, contentId, contentType, title` |
@@ -64,32 +64,32 @@ Một plugin không thể đặt timer, mở kết nối, hay tự chạy code. 
 | `content.deleted` | `siteId, contentId` |
 | `theme.activated` | `siteId, themeKey` |
 | `plugin.activated` | `siteId, pluginId` |
-| `mail.sent` | `siteId, pluginKey, to[], subject, messageId, sentAt` — một biên nhận cho *mọi* lần gửi trên site, không mang theo nội dung. |
+| `mail.sent` | `siteId, pluginKey, to[], subject, messageId, sentAt` — thông báo cho mỗi lần gửi email trên website, không kèm nội dung thư. |
 | `mail.failed` | `siteId, pluginKey, to[], subject, error, failedAt` |
 
-### Filters — biến đổi một giá trị đang trên đường truyền, chặn và bị giới hạn
+### Filters — biến đổi dữ liệu, có chờ kết quả và giới hạn thời gian
 
-| Filter | Value | Context |
+| Bộ lọc | Giá trị | Ngữ cảnh |
 | --- | --- | --- |
-| `content.seo` | `{ title?, description?, ogImage?, noindex?, canonical? }` — metadata của một trang, ngay trước khi theme render nó. | `siteId, contentId, path, title` |
-| `mail.sending` | `{ subject, text?, html?, replyTo?, send }` — một email chuẩn bị gửi ngay trước SMTP. Trả về `send: false` để huỷ gửi. | `siteId, pluginKey, to[]` |
+| `content.seo` | `{ title?, description?, ogImage?, noindex?, canonical? }` — thông tin SEO của trang, ngay trước khi theme hiển thị. | `siteId, contentId, path, title` |
+| `mail.sending` | `{ subject, text?, html?, replyTo?, send }` — email ngay trước khi gửi qua SMTP. Trả về `send: false` để hủy gửi. | `siteId, pluginKey, to[]` |
 
 ## Đối tượng `ctx`
 
-| Property | Là gì | Phạm vi (scope) yêu cầu |
+| Thuộc tính | Chức năng | Quyền hoặc điều kiện cần có |
 | --- | --- | --- |
-| `ctx.settings` | Cấu hình của plugin cho **site này**, hợp nhất với các giá trị mặc định của `settingsSchema`. | — |
-| `ctx.secrets` | `{ placeholder: boolean }` — những `network.secrets` đã khai báo nào mà admin đã điền. Không bao giờ là giá trị thật. | — |
-| `ctx.site` | `{ id, name, locale }` cho site hiện tại. | — |
-| `ctx.log` | `info / warn / error(message, meta?)`. | — |
-| `ctx.storage` | Lưu trữ key-value, giới hạn namespace theo (plugin, site). | — |
-| `ctx.db` | Các bảng quan hệ **của riêng** plugin. | `data:own` + first-party + bảng đã khai báo |
-| `ctx.content` | Đọc nội dung của site. | `content:read` |
-| `ctx.jobs` | Xếp hàng việc chạy nền. | — |
-| `ctx.mail` | Gửi email qua mail server của site. | `mail:send` |
-| `ctx.http` | Tiếp cận một host bên ngoài đã khai báo. | `network:fetch` + `network.hosts` |
+| `ctx.settings` | Cấu hình plugin cho website hiện tại, kết hợp với giá trị mặc định từ `settingsSchema`. | — |
+| `ctx.secrets` | `{ placeholder: boolean }` cho biết quản trị viên đã điền những mục nào trong `network.secrets`; không chứa giá trị bí mật. | — |
+| `ctx.site` | `{ id, name, locale }` của website hiện tại. | — |
+| `ctx.log` | Ghi nhật ký bằng `info / warn / error(message, meta?)`. | — |
+| `ctx.storage` | Lưu trữ khóa–giá trị, tách biệt theo từng plugin và website. | — |
+| `ctx.db` | Truy cập bảng quan hệ riêng của plugin. | `data:own`, plugin do Z-CMS cung cấp (first-party) và bảng đã khai báo |
+| `ctx.content` | Đọc nội dung website. | `content:read` |
+| `ctx.jobs` | Đưa tác vụ nền vào hàng đợi. | — |
+| `ctx.mail` | Gửi email qua máy chủ thư của website. | `mail:send` |
+| `ctx.http` | Gửi yêu cầu tới máy chủ bên ngoài đã khai báo. | `network:fetch` và `network.hosts` |
 
-### `ctx.storage` — key-value, kho lưu trữ mặc định
+### `ctx.storage` — kho lưu trữ khóa–giá trị mặc định
 
 ```ts
 await ctx.storage.set("counter", 3);
@@ -98,11 +98,11 @@ await ctx.storage.list("prefix:");                  // [{ key, value }]
 await ctx.storage.delete("counter");
 ```
 
-Hãy dùng cái này trước khi nghĩ tới bảng quan hệ. Một plugin chỉ dùng `ctx.storage` hoàn toàn không để lại dấu vết schema nào, và bất kỳ plugin nào — cộng đồng hay first-party — đều có thể dùng nó. Key và value được cô lập theo từng plugin *và* từng site.
+Hãy ưu tiên `ctx.storage` trước khi tạo bảng quan hệ. Kho lưu trữ này không yêu cầu bổ sung cấu trúc cơ sở dữ liệu và dùng được cho cả plugin cộng đồng lẫn plugin do Z-CMS cung cấp. Dữ liệu được tách biệt theo từng plugin và từng website.
 
 ### `ctx.db` — các bảng của riêng plugin
 
-Chỉ khả dụng cho các plugin first-party nắm giữ `data:own` và đã khai báo bảng trong `manifest.database`. Đây không phải là một handle cơ sở dữ liệu: không có kết nối, không có transaction và không có chuỗi SQL. Bạn nêu tên một bảng bạn sở hữu và một filter đẳng thức thuần; host dựng câu truy vấn tham số hoá ở phía bên kia ranh giới và đóng dấu `tenant_id`/`site_id` từ token của bạn lên mọi hàng.
+API này chỉ dành cho plugin do Z-CMS cung cấp, đã được cấp `data:own` và khai báo bảng trong `manifest.database`. Plugin không nhận kết nối cơ sở dữ liệu, không tự quản lý giao dịch và không gửi chuỗi SQL. Thay vào đó, plugin chỉ định bảng của mình cùng điều kiện lọc; tiến trình chủ dựng truy vấn có tham số và áp dụng `tenant_id`/`site_id` lấy từ token.
 
 ```ts
 await ctx.db.insert("p_com_example_plugin_hello__notes", { title: "Hi", body: "…" });
@@ -115,7 +115,7 @@ await ctx.db.update("…__notes", { body: "edited" }, { id });
 await ctx.db.delete("…__notes", { id });
 ```
 
-**Lọc.** Một giá trị trần trong `where` là phép đẳng thức (`{ stage: "lead" }`). Với bất kỳ thứ gì khác, dùng dạng dài `{ column: { op, value } }`. Các toán tử là `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `contains`, `startsWith`, và `in`. Các điều kiện được nối bằng AND; không có `OR`, không có SQL thô, và mọi giá trị đều là tham số ràng buộc — toán tử chỉ chọn phép so sánh.
+**Lọc dữ liệu.** Giá trị trực tiếp trong `where`, như `{ stage: "lead" }`, có nghĩa là so sánh bằng. Với phép so sánh khác, dùng `{ column: { op, value } }`. Các toán tử được hỗ trợ là `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `contains`, `startsWith` và `in`. Các điều kiện được kết hợp bằng AND; không hỗ trợ `OR` hoặc SQL thô. Mọi giá trị đều được truyền dưới dạng tham số truy vấn.
 
 ```ts
 await ctx.db.select("…__customers", {
@@ -129,24 +129,24 @@ await ctx.db.select("…__customers", {
 });
 ```
 
-Xem [Bảng dữ liệu và màn hình quản trị](/vi/developers/plugin-handbook/data-and-admin/) để biết cách khai báo bảng, gắn menu cho nó, và phơi bày một danh sách đã lọc cho một theme.
+Xem [Bảng dữ liệu và màn hình quản trị](/vi/developers/plugin-handbook/data-and-admin/) để biết cách khai báo bảng, thêm menu quản trị và cung cấp danh sách có bộ lọc cho theme.
 
-### `ctx.content` — đọc nội dung site
+### `ctx.content` — đọc nội dung website
 
 ```ts
 const page = await ctx.content.get(contentId);              // ContentDto | null
 const posts = await ctx.content.list({ contentTypeKey: "post", status: "PUBLISHED" });
 ```
 
-Chỉ đọc, và được kiểm soát bởi `content:read`. Ghi nội dung không nằm trên object này — một plugin tác động lên nội dung thông qua `filters` và `actions`, chứ không phải bằng cách ghi các hàng.
+Đối tượng này chỉ hỗ trợ đọc và cần quyền `content:read`; nó không cung cấp phương thức ghi nội dung. Plugin tham gia xử lý nội dung qua `filters` và `actions`, không ghi trực tiếp vào bảng dữ liệu.
 
-### `ctx.jobs` — làm việc về sau
+### `ctx.jobs` — đưa tác vụ vào hàng đợi
 
 ```ts
 await ctx.jobs.enqueue("sync-catalog", { since: lastRun });
 ```
 
-Cách duy nhất để một plugin thực hiện việc trì hoãn. Payload được trao cho handler tương ứng trong `jobs` khi hàng đợi xử lý nó — cùng sandbox, cùng phạm vi (scope), ngoài đường request, với độ bền và cơ chế thử lại phía sau.
+Đây là cách duy nhất để plugin yêu cầu chạy tác vụ sau. Khi hàng đợi xử lý tác vụ, dữ liệu được chuyển cho hàm tương ứng trong `jobs`. Tác vụ vẫn chạy trong sandbox với cùng phạm vi quyền, nhưng tách khỏi yêu cầu web ban đầu. Nền tảng đảm nhiệm việc lưu tác vụ và thử lại khi thất bại.
 
 ### `ctx.mail` — gửi email
 
@@ -154,9 +154,9 @@ Cách duy nhất để một plugin thực hiện việc trì hoãn. Payload đ�
 await ctx.mail.send({ to: "a@b.co", subject: "Hello", text: "…", replyTo: "me@site" });
 ```
 
-Yêu cầu `mail:send`. Không có `from` (người gửi trong phong bì là của site), không có SMTP host hay thông tin xác thực, và không có kết quả gửi — `send` được resolve khi thư được chấp nhận vào hàng đợi. Kết quả đến về sau dưới dạng các action `mail.sent` / `mail.failed`. Việc gửi bị giới hạn tần suất và khử trùng lặp theo từng site.
+API cần quyền `mail:send` và không nhận trường `from`, máy chủ SMTP hay thông tin xác thực; địa chỉ gửi được lấy từ cấu hình website. `send` hoàn tất khi email được chấp nhận vào hàng đợi, không phải khi gửi thành công. Kết quả gửi được thông báo sau qua `mail.sent` hoặc `mail.failed`. Hệ thống giới hạn tần suất và ngăn gửi trùng theo từng website.
 
-### `ctx.http` — tiếp cận dịch vụ bên ngoài
+### `ctx.http` — gọi dịch vụ bên ngoài
 
 ```ts
 const res = await ctx.http.fetch({
@@ -168,27 +168,27 @@ const res = await ctx.http.fetch({
 const data = JSON.parse(res.body); // body arrives as text
 ```
 
-Yêu cầu `network:fetch` **và** một khối `network` trong manifest nêu tên host — một plugin không thể tiếp cận một host mà admin không nhìn thấy trên màn hình chấp thuận. Gateway từ chối các địa chỉ private, loopback và link-local (trên mỗi lần redirect nữa), giới hạn mỗi request ở 10s và 1&nbsp;MB, và áp hạn ngạch theo giờ cho từng site.
+API cần quyền `network:fetch` và khối `network` trong manifest để khai báo máy chủ đích. Plugin không thể gọi máy chủ không có trên màn hình phê duyệt quyền. Gateway chặn địa chỉ mạng riêng, loopback và link-local, kể cả sau mỗi lần chuyển hướng. Mỗi yêu cầu bị giới hạn ở 10 giây và 1&nbsp;MB; hạn ngạch theo giờ được áp dụng riêng cho từng website.
 
-:::note[Tiêu một khoá mà không cần nắm giữ nó]
-Một setting được nêu tên dưới `network.secrets` bị giữ lại khỏi `ctx.settings`. Viết `{{secret:name}}` vào nơi cần thông tin xác thực; gateway thay bằng giá trị thật **sau** khi kiểm tra host, ở phía bên kia sandbox. Một plugin bị xâm phạm không thể tuồn ra một khoá mà nó chưa từng nhận.
+:::note[Sử dụng khóa bí mật mà không nhận giá trị khóa]
+Các mục khai báo trong `network.secrets` không xuất hiện trong `ctx.settings`. Dùng `{{secret:name}}` tại vị trí cần thông tin xác thực; sau khi kiểm tra máy chủ đích, gateway mới thay bằng giá trị thật ở bên ngoài sandbox. Nhờ đó, ngay cả khi plugin bị xâm nhập, mã trong sandbox cũng không nhận được khóa để đọc hoặc làm lộ trực tiếp.
 :::
 
-## Phạm vi (scope) một plugin có thể yêu cầu
+## Các quyền plugin có thể yêu cầu
 
-`manifest.permissions` liệt kê các phạm vi (scope) mà admin phê duyệt trên màn hình chấp thuận. Những scope mà một plugin thường cần nhất:
+`manifest.permissions` liệt kê các quyền cần được quản trị viên phê duyệt. Những quyền thường dùng gồm:
 
-| Phạm vi (scope) | Cấp cho |
+| Quyền | Chức năng được phép sử dụng |
 | --- | --- |
 | `content:read` | `ctx.content` |
-| `content:create` · `content:update` · `content:delete` · `content:publish` | Ghi nội dung trên các đường dẫn phơi bày chúng. |
-| `media:read` · `media:upload` · `media:update` · `media:delete` | Truy cập thư viện media. |
+| `content:create` · `content:update` · `content:delete` · `content:publish` | Ghi nội dung qua các API có hỗ trợ thao tác tương ứng. |
+| `media:read` · `media:upload` · `media:update` · `media:delete` | Truy cập thư viện hình ảnh và tệp. |
 | `mail:send` | `ctx.mail` |
-| `network:fetch` | `ctx.http` (với một khai báo `network`) |
-| `data:own` | `ctx.db` và một khối `database` (chỉ first-party) |
+| `network:fetch` | `ctx.http`, kèm khai báo `network`. |
+| `data:own` | `ctx.db` và khối `database`, chỉ dành cho plugin do Z-CMS cung cấp. |
 
-`permissions` là các scope lõi mà plugin **yêu cầu để tiêu**. Đừng nhầm chúng với `permissionsProvided`, là các khoá quyền *mới* mà plugin **tạo ra** để kiểm soát các màn hình của chính nó — xem [Bảng dữ liệu và màn hình quản trị](/vi/developers/plugin-handbook/data-and-admin/) và [Quyền](/vi/developers/plugin-handbook/permissions/).
+`permissions` là các quyền sẵn có của nền tảng mà plugin yêu cầu sử dụng. Ngược lại, `permissionsProvided` là các quyền mới do plugin định nghĩa để kiểm soát màn hình của chính nó. Xem [Bảng dữ liệu và màn hình quản trị](/vi/developers/plugin-handbook/data-and-admin/) và [Quyền của plugin](/vi/developers/plugin-handbook/permissions/).
 
 ## Những gì không khả dụng
 
-Không có `require`, không có `import` bất cứ thứ gì ngoài `@zcmsorg/plugin-sdk`, không có `fs`, không có `process`, không có `process.env`, không có `fetch`, không có `WebSocket`, không có timer (`setTimeout`/`setInterval`), và không có database hay network handle nào. Bundle thành một file CommonJS duy nhất (xem [Xây dựng plugin đầu tiên của bạn](/vi/developers/plugin-handbook/getting-started/)) và chỉ tiếp cận thế giới bên ngoài qua `ctx`.
+Plugin không thể dùng `require` hoặc `import` để nạp module khác ngoài `@zcmsorg/plugin-sdk`. Các API `fs`, `process`, `process.env`, `fetch`, `WebSocket`, bộ hẹn giờ (`setTimeout`/`setInterval`) và kết nối trực tiếp tới cơ sở dữ liệu hoặc mạng đều không khả dụng. Hãy gộp mã thành một tệp CommonJS duy nhất và chỉ tương tác với bên ngoài qua `ctx`. Xem [Tạo plugin đầu tiên](/vi/developers/plugin-handbook/getting-started/).

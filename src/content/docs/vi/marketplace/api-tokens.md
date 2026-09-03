@@ -1,35 +1,35 @@
 ---
-title: API Token
-description: Tạo và dùng API token của Developer Portal để gửi package mà không cần đăng nhập trình duyệt.
+title: Token API
+description: Tạo và sử dụng token API để gửi gói lên Developer Portal từ trình chỉnh sửa theme, tập lệnh hoặc CI.
 sidebar:
   order: 3
 ---
 
-**API token** là một credential dành cho máy, cho phép một chương trình gửi package lên Marketplace thay bạn — không cần đăng nhập bằng trình duyệt. Hai nơi dùng nó:
+**Token API** là thông tin xác thực để chương trình gửi gói lên Marketplace thay bạn mà không cần phiên đăng nhập trình duyệt. Token được dùng trong hai trường hợp:
 
-- **Trình chỉnh sửa theme của Z-CMS**, khi bạn ký và gửi một theme vẽ tay ngay trong admin ("Kết nối tài khoản marketplace").
-- **Script hoặc CI của riêng bạn**, gọi thẳng API gửi package.
+- **Trình chỉnh sửa theme của Z-CMS:** ký và gửi theme được tạo trong trang quản trị qua chức năng **Kết nối tài khoản marketplace**.
+- **Tập lệnh hoặc CI của bạn:** gọi trực tiếp API gửi gói.
 
-Token chỉ làm được đúng một việc — gửi package để duyệt. Nó **không** ký được package, không tạo được token khác, không đăng ký hay xoay publisher key, và không đọc được bất cứ dữ liệu riêng tư nào. Phạm vi duy nhất của nó là `submissions:write`. Việc ký vẫn dùng publisher key của bạn — thứ không bao giờ rời khỏi máy hay trình duyệt; token chỉ mang gói **đã ký** lên Marketplace.
+Token chỉ có phạm vi `submissions:write`, dùng để gửi gói kiểm duyệt và theo dõi các lượt gửi qua API bên dưới. Nó không cho phép ký gói, tạo token khác, đăng ký hoặc thay khóa nhà phát hành, hay truy cập dữ liệu riêng tư ngoài phạm vi này. Việc ký vẫn dùng khóa riêng của nhà phát hành trên máy hoặc trong trình duyệt; token chỉ xác thực thao tác tải gói đã ký lên Marketplace.
 
 ## Tạo token
 
 Mở **Developer Portal → Tokens** và tạo một token:
 
-1. **Nhãn (Label)** — tên chỉ mình bạn thấy, để sau này phân biệt các token: `laptop của tôi`, `acme CI`.
-2. **Hạn dùng (Expiry)** — `Không bao giờ`, hoặc 30 / 90 / 365 ngày. Một token nằm trong kho bí mật hàng tháng trời nên có ngày kết thúc; Portal tự động từ chối nó sau ngày đó.
+1. **Nhãn (Label):** tên chỉ bạn thấy, dùng để phân biệt các token, ví dụ `laptop của tôi` hoặc `acme CI`.
+2. **Hạn dùng (Expiry):** chọn không hết hạn hoặc 30, 90, 365 ngày. Với token dùng lâu dài, nên đặt hạn để chủ động thay mới. Portal tự từ chối token đã hết hạn.
 
-Bấm **Tạo**. Token đầy đủ — dạng `zcms_pat_…` — chỉ hiện **một lần** ngay lúc đó. Hãy copy ngay: nó chỉ được lưu ở dạng hash và **không thể lấy lại**. Nếu làm mất, hãy thu hồi và tạo token khác.
+Chọn **Tạo**. Token đầy đủ, có dạng `zcms_pat_…`, chỉ xuất hiện một lần. Hãy sao chép và lưu vào nơi bảo mật ngay. Portal chỉ lưu giá trị băm nên không thể hiển thị lại token. Nếu làm mất, hãy thu hồi và tạo token mới.
 
 ## Dùng token
 
-### Từ admin Z-CMS
+### Từ trang quản trị Z-CMS
 
-Trong panel **Phát hành** của trình chỉnh sửa theme, mở **Kết nối tài khoản marketplace**, dán token vào rồi bấm **Kết nối**. Token được lưu mã hoá và không hiện lại lần nào nữa. Từ đó, **Ký & gửi duyệt** sẽ tải gói đã ký lên bằng token này.
+Trong bảng **Phát hành** của trình chỉnh sửa theme, mở **Kết nối tài khoản marketplace**, dán token rồi chọn **Kết nối**. Z-CMS lưu token ở dạng mã hóa và không hiển thị lại. Từ đó, **Ký & gửi duyệt** dùng token này để tải gói đã ký lên.
 
-### Từ script hoặc CI
+### Từ tập lệnh hoặc CI
 
-Gửi token dưới dạng bearer credential ở endpoint gửi package:
+Gửi token trong thông tin xác thực Bearer khi gọi API tải gói lên:
 
 ```bash
 curl -X POST https://marketplace.z-cms.org/api/v1/developer/submissions \
@@ -44,22 +44,22 @@ curl https://marketplace.z-cms.org/api/v1/developer/submissions \
   -H "Authorization: Bearer zcms_pat_…"
 ```
 
-Giới hạn tải lên là 20 MB, và mỗi tài khoản developer gửi tối đa 10 package trong một giờ trượt. Portal đọc id, version và publisher **từ envelope đã ký** — token chỉ chứng minh ai là người tải lên.
+Mỗi gói tối đa 20 MB; mỗi tài khoản lập trình viên được gửi tối đa 10 gói trong bất kỳ khoảng thời gian một giờ nào. Portal đọc ID, phiên bản và nhà phát hành từ phần thông tin có chữ ký trong gói. Token chỉ xác định tài khoản đang tải lên.
 
 ## Quản lý và thu hồi
 
-Danh sách token hiển thị: nhãn, phần prefix nhìn thấy được (`zcms_pat_` cộng vài ký tự — đủ để nhận ra, không đủ để xác thực), thời điểm tạo, lần dùng gần nhất, và hạn dùng.
+Danh sách hiển thị nhãn, phần đầu token để nhận diện (`zcms_pat_` cùng vài ký tự, không đủ để xác thực), thời điểm tạo, lần dùng gần nhất và hạn dùng.
 
-**Thu hồi (Revoke)** là công tắc ngắt: request kế tiếp dùng token đã thu hồi sẽ thất bại ngay. Hãy thu hồi ngay khi nghi token bị lộ, khi một máy ngừng sử dụng, hoặc khi xoay secret của CI.
+Chọn **Thu hồi (Revoke)** để vô hiệu hóa token ngay. Mọi yêu cầu tiếp theo dùng token đó sẽ bị từ chối. Hãy thu hồi khi nghi ngờ bị lộ, khi ngừng sử dụng một thiết bị hoặc khi thay thông tin xác thực của CI.
 
 ## Giữ token an toàn
 
-- **Mỗi nơi một token** — một token cho laptop, token riêng cho từng hệ thống CI. Thu hồi một cái sẽ không ảnh hưởng các cái còn lại.
-- **Đặt hạn dùng** cho các token sống lâu; gia hạn có chủ đích thay vì để một credential có hiệu lực mãi mãi.
-- **Không bao giờ commit token** hay dán vào trang công khai. Prefix `zcms_pat_` là cố ý: nó giúp secret scanner phát hiện token bị lộ nhanh — nhưng bạn tự thu hồi còn nhanh hơn.
-- Token được lưu ở dạng **hash**, nên nếu cơ sở dữ liệu phía chúng tôi bị lộ cũng không cho ra credential dùng được. Hãy giữ bản copy của bạn cẩn thận như vậy.
+- **Dùng token riêng cho từng nơi:** một token cho máy cá nhân, một token cho mỗi hệ thống CI. Thu hồi một token sẽ không ảnh hưởng nơi khác.
+- **Đặt hạn dùng:** chủ động thay mới các token dùng lâu dài, không để thông tin xác thực có hiệu lực vô thời hạn nếu không cần thiết.
+- **Không đưa token vào Git hoặc trang công khai.** Tiền tố `zcms_pat_` giúp công cụ quét phát hiện token bị lộ, nhưng bạn vẫn phải thu hồi ngay khi phát hiện sự cố.
+- **Bảo vệ bản token đầy đủ của bạn.** Portal chỉ lưu giá trị băm; bản gốc trong máy, CI hoặc kho bí mật vẫn cần được bảo vệ như mật khẩu.
 
 ## Liên quan
 
-- [Phát hành package](/vi/marketplace/publishing/) — quy trình đầy đủ keygen → pack → ký → gửi.
-- [Tổng quan Marketplace](/vi/marketplace/overview/) — cách duyệt và phân phối hoạt động.
+- [Phát hành gói cài đặt](/vi/marketplace/publishing/) — quy trình tạo khóa, đóng gói, ký và gửi kiểm duyệt.
+- [Tổng quan Marketplace](/vi/marketplace/overview/) — cơ chế kiểm duyệt và phân phối.

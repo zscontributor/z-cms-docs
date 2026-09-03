@@ -1,16 +1,16 @@
 ---
-title: zAI Content Operator
+title: Quản lý nội dung với zAI
 description: Dùng ngôn ngữ tự nhiên để liệt kê, tạo, sửa và xuất bản nội dung.
 sidebar:
   order: 10
 ---
 
-zAI cho phép bạn quản lý trang và bài viết bằng ngôn ngữ tự nhiên. zAI không thể vượt quá permission của tài khoản hiện tại; mọi yêu cầu vẫn đi qua Z-CMS API, bước kiểm tra permission và nhật ký kiểm tra.
+zAI Content Operator cho phép bạn quản lý trang và bài viết bằng ngôn ngữ tự nhiên. zAI chỉ được thực hiện các thao tác mà tài khoản hiện tại có quyền sử dụng. Mọi thao tác đều đi qua Z-CMS API, được kiểm tra quyền và ghi vào nhật ký kiểm toán.
 
 ## Tác vụ hỗ trợ
 
 - Liệt kê hoặc tìm trang và bài viết.
-- Tạo nội dung mới ở trạng thái Draft.
+- Tạo nội dung mới ở trạng thái bản nháp (Draft).
 - Sửa tiêu đề, slug hoặc các trường được hỗ trợ.
 - Xuất bản hoặc hủy xuất bản nội dung.
 - Xóa nội dung sau bước xác nhận rõ ràng.
@@ -20,7 +20,7 @@ zAI cho phép bạn quản lý trang và bài viết bằng ngôn ngữ tự nhi
 Trong yêu cầu, hãy nêu rõ loại nội dung, trạng thái, ngôn ngữ và giá trị cần thay đổi. Ví dụ:
 
 ```text
-Tạo một blog draft tiếng Việt tên "Thông báo bảo trì", slug "thong-bao-bao-tri".
+Tạo bản nháp bài viết bằng tiếng Việt, có tiêu đề "Thông báo bảo trì" và slug "thong-bao-bao-tri".
 ```
 
 ```text
@@ -34,7 +34,7 @@ Sau mỗi thao tác, hãy mở **Content** để kiểm tra kết quả, đặc 
 Khi bạn yêu cầu xóa, zAI sẽ tạm dừng và hiển thị bước **Xác nhận xóa**. Hãy kiểm tra lại đối tượng trước khi xác nhận. Nếu kết quả tìm kiếm chưa xác định được chính xác một đối tượng, hãy hủy thao tác.
 
 :::caution
-Không nhập secret, thông tin xác thực hoặc dữ liệu cá nhân nhạy cảm vào hội thoại. zAI hỗ trợ thao tác nội dung nhưng không thay thế quy trình biên tập và kiểm duyệt.
+Không nhập khóa bí mật, thông tin xác thực hoặc dữ liệu cá nhân nhạy cảm vào hội thoại. zAI hỗ trợ quản lý nội dung nhưng không thay thế quy trình biên tập và kiểm duyệt.
 :::
 
-Nếu zAI báo không đủ permission, hãy dùng tài khoản phù hợp hoặc nhờ Editor/Admin thực hiện. Không nên cấp vai trò cao hơn chỉ để hoàn thành một thao tác đơn lẻ.
+Nếu zAI báo không đủ quyền, hãy dùng tài khoản đã được cấp quyền phù hợp hoặc nhờ người có vai trò Editor/Admin thực hiện. Không cấp thêm quyền rộng hơn mức cần thiết chỉ để hoàn thành một thao tác đơn lẻ.

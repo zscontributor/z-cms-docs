@@ -1,19 +1,19 @@
 ---
 title: テーマとプラグインを連携する
-description: テーマをプラグインの内部実装に依存させず、capability と namespace 付きブロックを利用する方法を説明します。
+description: プラグインの内部実装に依存せず、ケイパビリティと名前空間付きブロックで連携する方法を説明します。
 sidebar:
   order: 3
 ---
 
-テーマとプラグインは互いを import しません。プラグインが capability を公開し、render payload が有効な capability をテーマへ伝え、テーマは `ctx.hasCapability()` で確認します。
+テーマとプラグインは互いのコードをインポートしません。プラグインが機能識別子（ケイパビリティ）を宣言すると、有効な機能の一覧が表示用データに含まれます。テーマは `ctx.hasCapability()` で利用可能かどうかを確認します。
 
-:::note[capability に含まれるもの]
-capability は `commerce.products` や `reviews.summary` などの機能識別子です。プラグインのデータは含まれず、テーマにプラグイン設定、storage、database table、API へのアクセス権を与えるものでもありません。
+:::note[ケイパビリティが表すもの]
+ケイパビリティは `commerce.products` や `reviews.summary` などの機能識別子です。プラグインのデータは含まれず、設定、ストレージ、データベース、API へのアクセス権をテーマに与えるものでもありません。
 :::
 
-## ステップ 1: 公開 contract を決める
+## ステップ 1：公開する連携仕様を決める
 
-特定の実装名ではなく機能を表す、安定した namespace 付き capability を選びます。
+特定の実装や製品名ではなく、機能を表す名前を選びます。名前空間を付け、バージョンが変わっても使い続けられる識別子にしてください。
 
 適切な例:
 
@@ -25,13 +25,13 @@ capability は `commerce.products` や `reviews.summary` などの機能識別�
 
 次に、公開データをどこから受け取るかを決めます。
 
-- 保存済みページドキュメントの一部であるデータには block props を使用します。
-- リクエストごとに動的に生成する必要があるデータには、platform render payload のフィールドを使用します。この方法には Z-CMS core の contract 変更が必要です。
-- テーマからプラグインや CMS の private endpoint を呼び出さないでください。
+- ページに保存済みのデータは、ブロックのプロパティ（props）で渡します。
+- リクエストごとに生成するデータは、プラットフォームの表示用データに専用フィールドを設けて渡します。そのためには Z-CMS コア側の仕様変更が必要です。
+- テーマからプラグインや CMS の非公開エンドポイントを呼び出さないでください。
 
-## ステップ 2: プラグインから capability を公開する
+## ステップ 2：プラグインでケイパビリティを宣言する
 
-プラグインの `plugin.json` に capability を追加します。
+プラグインの `plugin.json` にケイパビリティを追加します。
 
 ```json
 {
@@ -40,11 +40,11 @@ capability は `commerce.products` や `reviews.summary` などの機能識別�
 }
 ```
 
-サイトにインストールされ、かつ**有効な**プラグインだけが render payload に capability を追加します。プラグインを無効化すると、その capability も削除されます。
+インストール済みで、かつ有効なプラグインだけが、表示用データにケイパビリティを追加します。プラグインを無効にすると、そのケイパビリティも一覧からなくなります。
 
-## ステップ 3: テーマで任意の capability として宣言する
+## ステップ 3：テーマで任意の連携機能として宣言する
 
-`theme.json` に capability を追加します。
+`theme.json` にケイパビリティを追加します。
 
 ```json
 {
@@ -73,11 +73,11 @@ function ProductPage({ ctx, content }: PageTemplateProps<Settings>) {
 }
 ```
 
-capability の検出で分かるのは「provider が有効かどうか」だけです。レビューなどのプラグインレコードは返されません。
+分かるのは、その機能を提供するプラグインが有効かどうかだけです。レビューなどのレコードが返るわけではありません。
 
 ## ステップ 5: プラグイン関連ブロックを表示する
 
-ページドキュメントに namespace 付きブロックがあり、公開データが props に保存されている場合は、テーマにその表示 component を登録します。
+ページに名前空間付きのブロックがあり、その props に公開用データが保存されている場合は、対応する表示コンポーネントをテーマに登録します。
 
 `content.blocks` に保存されるブロックの例:
 
@@ -92,7 +92,7 @@ capability の検出で分かるのは「provider が有効かどうか」だけ
 }
 ```
 
-テーマの component:
+テーマ側の表示コンポーネント：
 
 ```tsx
 interface ReviewSummaryProps {
@@ -124,43 +124,32 @@ const blocks = {
 };
 ```
 
-プラグイン関連ブロックの props も core block と同様に検証してください。JSON 値なので、欠けている場合や古いプラグインバージョンの形式である場合があります。
+プラグインのブロックも、Z-CMS 標準のブロックと同様に props を検証してください。値が欠けていたり、古いプラグインのデータ形式が残っていたりする可能性があります。
 
 ## ステップ 6: プラグインがない場合や変更された場合に対応する
 
 次の状態をすべてテストしてください。
 
 1. プラグインがインストールされていない。
-2. プラグインはインストール済みだが無効である。
-3. プラグインが有効で、想定したブロックデータがある。
-4. capability はあるが、block props が空、または古い schema である。
-5. ページにブロックが残っているが、プラグインが capability を提供しなくなった。
+2. インストール済みだが無効になっている。
+3. 有効で、想定したブロックデータがある。
+4. ケイパビリティはあるが、ブロックの props が空、または古いスキーマのままである。
+5. ページにブロックが残っているが、プラグインがケイパビリティを提供しなくなっている。
 
-どの状態でもページの主要機能を利用できるようにしてください。ナビゲーション、ページタイトル、主要コンテンツを任意の capability だけに依存させないでください。
+どの状態でもページの主要機能を使えるようにしてください。ナビゲーション、タイトル、本文を任意のケイパビリティだけに依存させてはいけません。
 
-## 現在の contract の制限
+## 現在の連携仕様の制限
 
-Theme SDK には、plugin と**間接的**に連携するための共通 contract がすでに
-あります。`ctx.hasCapability()` は機能を検出し、`ctx.getIntegration()` は
-core が allow-list した公開 projection を読み取り、`ctx.renderSlot()` は
-runtime が所有する対話 UI の配置場所を決めます。theme が plugin を import
-したり、plugin の credential を受け取ったりすることはありません。
+Theme SDK は、プラグインとの間接的な連携をサポートしています。`ctx.hasCapability()` で機能の有無を確認し、`ctx.getIntegration()` でコアが公開を許可したデータを読み取り、`ctx.renderSlot()` でランタイム管理の対話型 UI を配置します。テーマにプラグインのコードや認証情報を渡すことはありません。
 
-現在の contract でも、theme は次のことを行えません。
+現在の仕様では、テーマから次の操作はできません。
 
-- 任意の plugin handler を直接呼び出すこと（`ctx.callPlugin()` や
-  `ctx.callCapability()` はありません）。
-- プラグイン設定や plugin storage を読み取る。
-- プラグイン所有の database table を query する。
-- `ctx.hasCapability()` から任意のプラグインデータを取得する。
-- package だけで新しい動的 payload 形式を登録する。
+- 任意のプラグインハンドラーを直接呼び出す。`ctx.callPlugin()` や `ctx.callCapability()` はありません。
+- プラグインの設定やストレージを読み取る。
+- プラグイン専用のデータベーステーブルを直接検索する。
+- `ctx.hasCapability()` からプラグインのデータを取得する。
+- パッケージだけで新しい動的データ形式を登録する。
 
-リクエスト時のデータや action が必要な場合、core が対応する public
-projection または integration action を定義し、allow-list する必要があります。
-たとえば現在の `ai.assistant` は `getIntegration()` で表示用データを公開し、
-`renderSlot("floating")` で chat UI を配置し、gateway では `chat` action だけを
-許可します。これは theme が任意の plugin を呼び出せる汎用 proxy では
-ありません。theme に private API の使用を案内することは、今もサポート外で
-安全でない theme を作ることになります。
+リクエストに応じたデータや操作が必要な場合は、コアが対応する公開データや連携操作を定義し、明示的に許可する必要があります。たとえば `ai.assistant` は、`getIntegration()` で表示用データを提供し、`renderSlot("floating")` でチャット UI を配置します。ゲートウェイが許可するのは `chat` 操作だけです。任意のプラグインを呼び出せる汎用プロキシではありません。テーマから非公開 API を呼ぶ方法はサポート対象外であり、安全性も保証できません。
 
 テンプレートのデータフロー全体については、[ページとブログ記事を表示する](/ja/developers/theme-handbook/rendering-content/)を参照してください。

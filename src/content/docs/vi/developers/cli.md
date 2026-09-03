@@ -1,27 +1,27 @@
 ---
 title: Tham chiếu zcms CLI
-description: Scaffold, đóng gói và ký theme/plugin cho Z-CMS.
+description: Tạo dự án mẫu, đóng gói, ký và xác minh plugin hoặc theme Z-CMS.
 sidebar:
   order: 4
 ---
 
-`zcms` giúp developer tạo project mẫu, tạo khóa cho nhà phát hành, đóng gói và kiểm tra plugin hoặc theme. CLI có bốn command — `init`, `keygen`, `pack` và `verify` — cùng với `help`. Việc tải package lên được thực hiện trên Developer Portal, không phải bằng CLI.
+`zcms` là công cụ dòng lệnh giúp lập trình viên tạo dự án mẫu, tạo khóa nhà phát hành, đóng gói và xác minh plugin hoặc theme. Công cụ có bốn lệnh chính — `init`, `keygen`, `pack`, `verify` — cùng lệnh trợ giúp `help`. Việc tải gói lên được thực hiện qua Developer Portal, không phải CLI.
 
 ## Cài đặt
 
-CLI yêu cầu Node.js 22 trở lên. Cài package chính thức từ npm:
+CLI cần Node.js 22 trở lên. Cài gói chính thức từ npm:
 
 ```bash
 npm install -g @zcmsorg/cli@latest
 ```
 
-Package tên là `@zcmsorg/cli`; lệnh nó cài ra là `zcms`.
+Gói npm có tên `@zcmsorg/cli`; sau khi cài, bạn dùng lệnh `zcms`.
 
-Chạy `zcms` không kèm tham số để kiểm tra CLI đã được cài và xem danh sách command có thể sử dụng.
+Chạy `zcms` không kèm tham số để xác nhận đã cài thành công và xem các lệnh hỗ trợ.
 
 ## Luồng sử dụng nhanh
 
-Ví dụ dưới đây tạo, build, ký và kiểm tra một plugin mới:
+Ví dụ sau tạo dự án, biên dịch, ký và xác minh một plugin mới:
 
 ```bash
 zcms init ./hello --kind plugin --id com.acme.plugin.hello
@@ -46,9 +46,9 @@ zcms pack . --kind plugin \
 zcms verify ./release/hello-0.1.0.zcms
 ```
 
-Khi `verify` báo `publisher signature : VALID`, nội dung package khớp với checksum và chữ ký của nhà phát hành hợp lệ; lúc này bạn có thể tải lên để kiểm duyệt. Package vẫn chưa cài được cho đến khi Marketplace phê duyệt và thêm chữ ký của Marketplace.
+Khi `verify` báo `publisher signature : VALID`, nội dung gói khớp checksum và chữ ký nhà phát hành hợp lệ. Bạn có thể gửi gói đi kiểm duyệt; gói chỉ cài được qua Marketplace sau khi được phê duyệt và có thêm chữ ký của Marketplace.
 
-## Tổng quan command
+## Các lệnh hỗ trợ
 
 ```text
 zcms init [<dir>] [--kind theme|plugin] [--id <reverse.dns.id>] [--name <name>]
@@ -62,30 +62,30 @@ zcms verify [<file.zcms>] [--marketplace-key <public.pem>]
 zcms help [--lang en|ja|vi]
 ```
 
-Chạy `zcms` không kèm command để xem hướng dẫn sử dụng này.
+Chạy `zcms` không kèm lệnh con để xem hướng dẫn sử dụng.
 
 ### Trợ giúp và ngôn ngữ
 
-`zcms help` in ra phần hướng dẫn ở trên; `zcms` không kèm command, `zcms -h`, `zcms -help` và `zcms --help` cũng vậy. Nội dung trợ giúp có sẵn bằng tiếng Anh, tiếng Nhật và tiếng Việt:
+`zcms help` hiển thị hướng dẫn ở trên. Chạy `zcms` không kèm lệnh con, `zcms -h`, `zcms -help` hoặc `zcms --help` cũng cho kết quả tương tự. Phần trợ giúp hỗ trợ tiếng Anh, tiếng Nhật và tiếng Việt:
 
 ```bash
 zcms help --lang vi      # Tiếng Việt
 zcms help --lang ja      # 日本語  (--lang JP và --lang VN cũng được chấp nhận)
 ```
 
-Nếu không có `--lang`, ngôn ngữ được đọc từ `ZCMS_LANG`, rồi tới locale của shell (`LANG`), và nếu không có thì mặc định là tiếng Anh. Chỉ phần trợ giúp được dịch — kết quả build, checksum và chi tiết lỗi giống nhau trong mọi ngôn ngữ.
+Nếu không truyền `--lang`, CLI lấy ngôn ngữ từ `ZCMS_LANG`, sau đó từ thiết lập ngôn ngữ của shell (`LANG`); nếu đều không có thì dùng tiếng Anh. Chỉ nội dung trợ giúp được dịch. Kết quả biên dịch, checksum và chi tiết lỗi giữ nguyên ở mọi ngôn ngữ.
 
-## 1. Tạo project mẫu
+## 1. Tạo dự án mẫu
 
 ```bash
 zcms init
 ```
 
-Khi chạy trong terminal, `init` hỏi các thông tin còn thiếu rồi tạo project mẫu có sẵn manifest, source, script build và test. Thư mục đích phải chưa tồn tại hoặc đang trống; CLI không ghi đè source code đã có.
+Khi chạy trong terminal, `init` hỏi các thông tin còn thiếu rồi tạo dự án gồm manifest, mã nguồn, tập lệnh biên dịch và kiểm thử. Thư mục đích phải chưa tồn tại hoặc đang trống; CLI không ghi đè mã nguồn đã có.
 
-Package ID phải viết thường theo dạng reverse-DNS, có ít nhất ba phần và nên bắt đầu bằng domain bạn kiểm soát. Ví dụ: `com.acme.plugin.hello` hoặc `com.acme.theme.corporate`.
+ID gói phải viết thường theo dạng tên miền đảo ngược (reverse-DNS), gồm ít nhất ba phần và nên bắt đầu bằng tên miền bạn kiểm soát. Ví dụ: `com.acme.plugin.hello` hoặc `com.acme.theme.corporate`.
 
-Nếu muốn CLI tạo project ngay mà không hỏi từng thông tin, hãy truyền `--yes` cùng đầy đủ các option cần thiết. Cách này phù hợp khi chạy bằng script hoặc trong CI:
+Để tạo dự án mà không phải trả lời từng câu hỏi, truyền `--yes` cùng các tùy chọn cần thiết. Cách này phù hợp khi chạy bằng tập lệnh hoặc CI:
 
 ```bash
 zcms init ./hello --yes --kind plugin \
@@ -96,7 +96,7 @@ zcms init ./hello --yes --kind plugin \
   --author-url "https://acme.example"
 ```
 
-Khi dùng `--yes` hoặc chạy trong môi trường không có terminal tương tác như CI, bạn bắt buộc phải truyền `--kind` và `--id`. Nếu bỏ qua các option khác, CLI dùng giá trị mặc định; version mặc định là `0.1.0`.
+Khi dùng `--yes` hoặc chạy trong môi trường không tương tác như CI, bạn phải truyền `--kind` và `--id`. Những tùy chọn khác dùng giá trị mặc định nếu bị bỏ qua; phiên bản mặc định là `0.1.0`.
 
 Một plugin sinh ra như sau:
 
@@ -112,16 +112,16 @@ hello/
 └── .gitignore           # đã ignore *.pem — xem bên dưới
 ```
 
-Theme có cấu trúc tương tự, với `theme.json`, `src/index.tsx` (Layout, template, block) và `src/theme.css`.
+Theme có cấu trúc tương tự, với `theme.json`, `src/index.tsx` (bố cục, mẫu trang, khối nội dung) và `src/theme.css`.
 
-### Vì sao scaffold lại quan trọng
+### Vì sao nên bắt đầu từ dự án mẫu?
 
-Có hai yêu cầu chỉ được kiểm tra khi extension chạy trên website thực tế, không phải trong lúc build. Nếu cấu hình sai, extension vẫn có thể build, test, đóng gói, ký và cài đặt thành công nhưng sẽ báo lỗi khi được kích hoạt. Project do `init` tạo đã đáp ứng sẵn cả hai yêu cầu này.
+Có hai yêu cầu về tệp đầu ra cần được đáp ứng khi tiện ích chạy trên website thực tế. Nếu cấu hình sai, quá trình biên dịch, kiểm thử, đóng gói, ký và cài đặt vẫn có thể thành công, nhưng tiện ích sẽ lỗi khi kích hoạt. Dự án do `init` tạo đã cấu hình sẵn hai yêu cầu này.
 
-| | Yêu cầu | Điều gì xảy ra nếu làm sai |
+| Loại | Yêu cầu | Nếu cấu hình sai |
 | --- | --- | --- |
-| **Plugin** | Output phải là **một tệp CommonJS duy nhất**. Sandbox chỉ cung cấp module `@zcmsorg/plugin-sdk`. | Nếu output gồm nhiều tệp, sandbox không thể xử lý `require()` tương đối và plugin sẽ lỗi khi được kích hoạt. `build.mjs` đã được cấu hình để gộp source thành một tệp. |
-| **Theme** | Entry là **ESM**, và file phải là **`.mjs`**. React phải **external**. | `dist/index.js` lấy module format từ `"type"` trong `package.json` gần nhất — mà `package.json` lại nằm trong package. Đoán sai thì `site-runtime` ném "Cannot use import statement outside a module", bắt lỗi, rồi **âm thầm quay về default theme**. Bundle thêm một bản React thứ hai thì bạn nhận "invalid hook call", chỉ ở production. |
+| Plugin | Đầu ra là một tệp CommonJS duy nhất; module bên ngoài duy nhất do sandbox cung cấp là `@zcmsorg/plugin-sdk`. | Khi đầu ra gồm nhiều tệp, sandbox không phân giải được `require()` tương đối. `build.mjs` đã cấu hình gộp mã nguồn thành một tệp. |
+| Theme | Tệp đầu vào là ES module có đuôi `.mjs`; React phải để ở dạng external, không gộp vào theme. | Sai định dạng module có thể gây lỗi "Cannot use import statement outside a module" và khiến runtime chuyển sang theme mặc định. Gộp thêm React có thể gây lỗi "invalid hook call" khi chạy bản phát hành. |
 
 ### Vòng lặp phát triển
 
@@ -139,35 +139,35 @@ pnpm test
 zcms keygen --out ./keys
 ```
 
-Command tạo hai tệp trong thư mục `./keys`:
+Lệnh tạo hai tệp trong thư mục `./keys`:
 
-- `publisher-private.pem`, chỉ owner được đọc (`0600`)
-- `publisher-public.pem`, dùng để đăng ký trong [Developer Portal](https://marketplace.z-cms.org/developer/publisher)
+- `publisher-private.pem`: khóa riêng, chỉ chủ sở hữu có quyền đọc và ghi (`0600`).
+- `publisher-public.pem`: khóa công khai để đăng ký tại [Developer Portal](https://marketplace.z-cms.org/developer/publisher).
 
-Chỉ tạo cặp khóa một lần cho mỗi nhà phát hành, không tạo khóa mới cho từng phiên bản. CLI từ chối ghi đè bất kỳ tệp khóa nào đã tồn tại — cả khóa riêng lẫn khóa công khai: ghi đè khóa riêng khiến mọi package từng ký bằng nó bị mồ côi, còn ghi đè riêng nửa khóa công khai sẽ để lại một cặp khóa không khớp. Hãy trỏ `--out` tới một thư mục trống.
+Chỉ tạo cặp khóa một lần cho mỗi nhà phát hành, không tạo lại cho từng phiên bản. CLI từ chối ghi đè khóa riêng và khóa công khai đã tồn tại để tránh mất khóa hoặc tạo cặp khóa không khớp. Hãy trỏ `--out` tới thư mục trống.
 
-`publisher-private.pem` **chính là danh tính của bạn**. Ai có nó đều có thể ký package dưới danh nghĩa bạn, và một khi nó lộ ra thì mọi package bạn từng ký đều phải bị coi là có thể giả mạo. Hãy backup ở nơi không phải là một repository. `.gitignore` do scaffold sinh ra đã loại `*.pem`, và packer không bao giờ đưa key material vào package (xem bên dưới) — nhưng không cơ chế nào cứu được bạn nếu bạn dán nó vào một khung chat hay một CI log.
+`publisher-private.pem` cho phép ký gói dưới danh nghĩa nhà phát hành. Nếu khóa bị lộ, người khác có thể giả mạo chữ ký của bạn. Hãy sao lưu ở nơi an toàn ngoài kho mã nguồn, không gửi qua hội thoại hoặc ghi vào nhật ký CI. `.gitignore` của dự án mẫu và bộ đóng gói đều loại tệp khóa, nhưng không bảo vệ được khóa đã bị sao chép ra ngoài.
 
-## 3. Chuẩn bị thư mục package
+## 3. Chuẩn bị thư mục đóng gói
 
-Manifest nằm ở root của thư mục bạn pack:
+Đặt manifest ở thư mục gốc mà bạn muốn đóng gói:
 
 - `plugin.json` khi dùng `--kind plugin`
 - `theme.json` khi dùng `--kind theme`
 
-Manifest phải có `id`, `name`, `version`, `author` và `engine`. Trường `entry` trỏ tới tệp đã build và tệp đó phải tồn tại trước khi đóng gói — `dist/index.js` với plugin, `dist/index.mjs` với theme.
+Manifest cần các trường `id`, `name`, `version`, `author` và `engine`. Trường `entry` phải trỏ tới tệp đã biên dịch và đang tồn tại: `dist/index.js` với plugin, `dist/index.mjs` với theme.
 
-Luôn chạy `pnpm build` trước khi pack. Một project do `zcms init` tạo có thể pack trực tiếp từ project root bằng `zcms pack .`; không cần tự copy `dist` sang một thư mục khác. Packer tự loại khỏi package các file chỉ dùng khi phát triển:
+Luôn chạy `pnpm build` trước khi đóng gói. Với dự án tạo bằng `zcms init`, bạn có thể chạy `zcms pack .` ngay tại thư mục gốc, không cần sao chép `dist` sang nơi khác. CLI tự loại các tệp sau:
 
-- **key material**: `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `id_*`, và `.npmrc`
-- **secret và VCS**: `.env*`, `.git`, `node_modules`
-- **chỉ dùng khi dev**: `src`, `test/`, build script, `tsconfig*.json`, tool config, source map
+- **Khóa và thông tin xác thực:** `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `id_*`, `.npmrc`.
+- **Cấu hình bí mật và thư mục quản lý mã:** `.env*`, `.git`, `node_modules`.
+- **Tệp chỉ dùng khi phát triển:** `src`, `test/`, tập lệnh biên dịch, `tsconfig*.json`, cấu hình công cụ và bản đồ mã nguồn (source map).
 
-Vì `*.pem` luôn bị loại, thư mục `./keys` không được đưa vào file `.zcms`. Dù vậy, vẫn phải giữ private key ngoài Git, không gửi qua chat và không in nội dung key vào CI log.
+Các tệp `*.pem` luôn bị loại khỏi gói, kể cả khóa trong `./keys`. Dù vậy, vẫn phải giữ khóa riêng ngoài Git, không gửi qua hội thoại và không in nội dung khóa vào nhật ký CI.
 
-## 4. Đóng gói và ký extension bằng khóa của nhà phát hành
+## 4. Đóng gói và ký tiện ích bằng khóa nhà phát hành
 
-Tham số đầu tiên là **đường dẫn tới theme hoặc plugin cần đóng gói** — `pack` sẽ nén đúng thư mục đó và ký lên nó. Dùng `.` khi shell của bạn đang ở trong thư mục đó, hoặc trỏ thẳng tới nó:
+Tham số đầu tiên là đường dẫn tới thư mục plugin hoặc theme cần phát hành. `pack` chỉ đóng gói thư mục đó và ký nội dung gói. Dùng `.` nếu terminal đang ở đúng thư mục, hoặc chỉ định đường dẫn cụ thể:
 
 ```bash
 mkdir -p release
@@ -185,15 +185,15 @@ zcms pack ./themes/corporate --kind theme \
   --out ./release/corporate-1.0.0.zcms
 ```
 
-`--kind` phải khớp với manifest ở đường dẫn đó (`plugin.json` → `--kind plugin`, `theme.json` → `--kind theme`). Nếu bỏ `--out`, CLI tạo `<manifest.id>-<manifest.version>.zcms` trong thư mục hiện tại. Xem [Phát hành package](/vi/marketplace/publishing/) để biết toàn bộ quy trình sign–pack–submit.
+`--kind` phải khớp manifest: `plugin.json` dùng `--kind plugin`, `theme.json` dùng `--kind theme`. Nếu không có `--out`, CLI tạo `<manifest.id>-<manifest.version>.zcms` trong thư mục hiện tại. Xem [Phát hành gói cài đặt](/vi/marketplace/publishing/) để biết quy trình đóng gói, ký và gửi kiểm duyệt.
 
-Nếu dùng `--out`, thư mục cha như `./release` phải tồn tại trước khi chạy command; CLI chỉ tạo file `.zcms`, không tự tạo thư mục cha.
+Nếu dùng `--out`, hãy tạo trước thư mục cha, chẳng hạn `./release`. CLI chỉ tạo tệp `.zcms`, không tự tạo thư mục cha.
 
-Command in ra ID package, phiên bản, kích thước tệp và checksum. Package này đã có chữ ký của nhà phát hành nhưng chưa thể cài đặt cho đến khi Marketplace kiểm duyệt và thêm chữ ký.
+Lệnh in ra ID gói, phiên bản, kích thước tệp và checksum. Gói đã có chữ ký nhà phát hành, nhưng cần Marketplace kiểm duyệt và ký thêm trước khi cài qua Marketplace.
 
-### Version tự tăng
+### Tự động tăng phiên bản
 
-Bạn không tự sửa version bằng tay giữa các lần phát hành. `pack` đóng gói đúng version mà manifest đang khai báo, rồi tăng version đó lên và ghi lại vào `theme.json`/`plugin.json` — và vào `package.json` nếu file này tồn tại, để hai bên không bao giờ lệch nhau. Vì vậy một project vừa scaffold ở `0.1.0` sẽ được pack **thành** `0.1.0`, còn manifest được để lại ở `0.1.1`, sẵn sàng cho lần pack tiếp theo:
+Không cần tự tăng phiên bản giữa các lần phát hành. `pack` đóng gói phiên bản hiện tại trong manifest, rồi tăng phiên bản và ghi lại vào `theme.json` hoặc `plugin.json`, cùng `package.json` nếu có. Ví dụ, dự án đang ở `0.1.0` sẽ tạo gói `0.1.0`; sau đó manifest được cập nhật thành `0.1.1` để chuẩn bị cho lần phát hành tiếp theo:
 
 ```bash
 zcms pack ./themes/corporate --kind theme \
@@ -201,20 +201,20 @@ zcms pack ./themes/corporate --kind theme \
 # version : packed 1.0.0; theme.json advanced to 1.0.1 for the next pack
 ```
 
-Ba flag ghi đè hành vi mặc định:
+Các tùy chọn điều khiển cách tăng phiên bản:
 
-| Flag | Tác dụng |
+| Tùy chọn | Tác dụng |
 | --- | --- |
-| *(none)* | đóng gói version hiện tại, rồi tăng số **patch** |
-| `--bump minor` / `--bump major` | tăng số minor hoặc major thay vì patch |
-| `--set-version <semver>` | đóng gói một version chính xác (vẫn tăng version sau đó trừ khi có thêm `--no-bump`) |
-| `--no-bump` | đóng gói version hiện tại và giữ nguyên manifest |
+| Không chỉ định | Đóng gói phiên bản hiện tại rồi tăng số patch. |
+| `--bump minor` / `--bump major` | Tăng số minor hoặc major thay cho patch sau khi đóng gói. |
+| `--set-version <semver>` | Đóng gói phiên bản được chỉ định; vẫn tăng phiên bản sau đó nếu không kèm `--no-bump`. |
+| `--no-bump` | Đóng gói phiên bản hiện tại và giữ nguyên manifest. |
 
-Tên file output `<manifest.id>-<manifest.version>.zcms` dùng version *đã được đóng gói*, không phải version đã tăng. Nếu pack thất bại, version được rollback — một lần pack thất bại không bao giờ để lại một lần tăng version dở dang.
+Tên tệp `<manifest.id>-<manifest.version>.zcms` dùng phiên bản đã đóng gói, không phải phiên bản vừa tăng. Nếu đóng gói thất bại, phiên bản được khôi phục về giá trị trước đó.
 
-### Chữ ký sideload (chỉ cho self-hosted)
+### Chữ ký để cài trực tiếp trên hệ thống tự vận hành
 
-Nhà phát hành lên Marketplace có thể bỏ qua phần này. Nếu bạn tự vận hành instance Z-CMS **của riêng mình** và muốn cài extension mà không qua Marketplace, hãy thêm `--operator-key`:
+Nếu chỉ phát hành trên Marketplace, bạn có thể bỏ qua phần này. Nếu tự vận hành Z-CMS và cần cài tiện ích mà không qua Marketplace (sideload), thêm `--operator-key`:
 
 ```bash
 zcms pack . --kind theme \
@@ -222,7 +222,7 @@ zcms pack . --kind theme \
   --operator-key ./op-private.pem
 ```
 
-Lệnh này đóng thêm một chữ ký thứ hai — chữ ký **operator**. Một instance có runtime ghim `OPERATOR_PUBLIC_KEY` tương ứng — và với theme thì đặt `ALLOW_THEME_SIDELOAD=true` — sẽ chạy package sau khi admin tải lên tại **Admin → Appearance → Install from file** rồi phê duyệt, hoàn toàn không cần Marketplace. Dùng cùng một cặp khóa operator cho `--key`/`--pub`. Package ký theo cách này dành cho sideload, không phải để gửi lên Marketplace.
+Lệnh thêm chữ ký thứ hai của đơn vị vận hành. Hệ thống cần cấu hình cố định khóa công khai tương ứng trong `OPERATOR_PUBLIC_KEY`; với theme, còn cần `ALLOW_THEME_SIDELOAD=true`. Quản trị viên tải gói lên tại **Admin → Appearance → Install from file** và phê duyệt trước khi sử dụng. Dùng cùng cặp khóa của đơn vị vận hành cho `--key`/`--pub`. Gói này dành cho cài đặt trực tiếp, không dùng để gửi lên Marketplace.
 
 ## 5. Xác minh trước khi gửi
 
@@ -230,35 +230,35 @@ Lệnh này đóng thêm một chữ ký thứ hai — chữ ký **operator**. M
 zcms verify ./release/example-plugin-1.0.0.zcms
 ```
 
-Khi gọi mà không kèm file, `zcms verify` chọn file `.zcms` mới nhất trong thư mục hiện tại — tiện lợi vì tên file được pack thay đổi mỗi lần version tăng lên, nên bạn hiếm khi phải gõ đầy đủ tên file.
+Nếu không chỉ định tệp, `zcms verify` chọn tệp `.zcms` mới nhất trong thư mục hiện tại. Bạn không cần nhập lại tên tệp mỗi khi phiên bản thay đổi.
 
-Ở bước này không truyền `--marketplace-key`. CLI kiểm tra checksum và publisher signature, nhưng sẽ hiển thị `marketplace signature : not checked`. Đây là kết quả bình thường đối với package vừa được bạn pack và chưa gửi lên Marketplace.
+Không truyền `--marketplace-key` ở bước này. CLI kiểm tra checksum và chữ ký nhà phát hành, đồng thời hiển thị `marketplace signature : not checked`. Đây là kết quả bình thường với gói chưa gửi lên Marketplace.
 
-Nếu chữ ký của nhà phát hành là `INVALID`, không tải tệp lên. Hãy build và đóng gói lại từ source sạch, sau đó kiểm tra đúng tệp đầu ra vừa tạo. Khi xác minh thất bại, CLI trả về exit code khác `0`, vì vậy có thể dùng command này trong CI.
+Nếu chữ ký nhà phát hành báo `INVALID`, không tải tệp lên. Biên dịch và đóng gói lại từ mã nguồn sạch, rồi xác minh đúng tệp đầu ra. CLI trả mã thoát khác `0` khi xác minh thất bại, nên có thể dùng lệnh này trong CI.
 
-## 6. Verify package từ Marketplace
+## 6. Xác minh gói tải từ Marketplace
 
-Phần này chỉ áp dụng cho file `.zcms` đã được Marketplace approve. Dùng public key chính thức của Marketplace để kiểm tra cả publisher signature và Marketplace signature:
+Với tệp `.zcms` đã được Marketplace phê duyệt, dùng khóa công khai chính thức của Marketplace để kiểm tra cả chữ ký nhà phát hành và chữ ký Marketplace:
 
 ```bash
 zcms verify ./downloaded-package.zcms \
   --marketplace-key ./marketplace-public.pem
 ```
 
-`marketplace-public.pem` là key của Marketplace, không phải file `publisher-public.pem` do `zcms keygen` tạo. Khi cả hai dòng đều báo `VALID`, package có chữ ký đầy đủ và có thể cài đặt. CLI chỉ đọc và kiểm tra package; nó không execute code bên trong.
+`marketplace-public.pem` là khóa công khai của Marketplace, không phải `publisher-public.pem` do `zcms keygen` tạo. Khi cả hai chữ ký đều báo `VALID`, gói có đủ chữ ký để cài đặt. CLI chỉ đọc và xác minh gói, không chạy mã bên trong.
 
 ## 7. Tải lên để kiểm duyệt
 
-CLI không có command `zcms publish`. Hãy upload đúng file `.zcms` vừa verify tại [**Developer Portal → Submit a package**](https://marketplace.z-cms.org/developer/submit).
+CLI không có lệnh `zcms publish`. Tải đúng tệp `.zcms` vừa xác minh lên [**Developer Portal → Submit a package**](https://marketplace.z-cms.org/developer/submit).
 
-Nếu cần tự động hóa bằng API, xem phần tải lên trong [Phát hành package](/vi/marketplace/publishing/). Không build hoặc đóng gói lại sau khi xác minh; file tải lên phải chính là file vừa được kiểm tra.
+Nếu cần tự động hóa qua API, xem phần tải lên trong [Phát hành gói cài đặt](/vi/marketplace/publishing/). Không biên dịch hoặc đóng gói lại sau khi xác minh; chỉ tải lên đúng tệp đã kiểm tra.
 
 ## Các lỗi thường gặp
 
 | Thông báo hoặc hiện tượng | Nguyên nhân và cách xử lý |
 | --- | --- |
-| `Nothing to ask with` | Bạn đang dùng `--yes` hoặc chạy trong CI nhưng thiếu `--kind` hay `--id`. Truyền đủ hai option này. |
-| `Missing plugin.json` hoặc `Missing theme.json` | Tham số `<dir>` không trỏ tới package root, hoặc `--kind` không đúng loại manifest. |
-| `Entry ... does not exist` | Chưa build package hoặc trường `entry` trong manifest sai. Chạy `pnpm build` và kiểm tra tệp trong `dist`. |
-| Không tạo được file trong `./release` | Chạy `mkdir -p release` trước khi dùng `--out ./release/...`. |
-| Marketplace signature là `INVALID` với package vừa pack | Package của bạn chưa được Marketplace co-sign. Verify trước khi submit mà không truyền `--marketplace-key`. |
+| `Nothing to ask with` | Dùng `--yes` hoặc chạy trong CI nhưng thiếu `--kind` hay `--id`. Truyền đủ hai tùy chọn này. |
+| `Missing plugin.json` hoặc `Missing theme.json` | `<dir>` không trỏ tới thư mục gốc của gói, hoặc `--kind` không khớp loại manifest. |
+| `Entry ... does not exist` | Chưa biên dịch hoặc `entry` sai. Chạy `pnpm build` và kiểm tra tệp trong `dist`. |
+| Không tạo được tệp trong `./release` | Chạy `mkdir -p release` trước khi dùng `--out ./release/...`. |
+| Chữ ký Marketplace báo `INVALID` với gói vừa tạo | Gói chưa được Marketplace ký thêm. Khi xác minh trước khi gửi, không truyền `--marketplace-key`. |

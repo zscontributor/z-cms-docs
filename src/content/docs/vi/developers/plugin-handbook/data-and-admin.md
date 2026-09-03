@@ -1,19 +1,19 @@
 ---
 title: Bảng dữ liệu và màn hình quản trị
-description: Cấp cho một plugin bảng riêng, một menu sidebar và các màn hình CRUD — khai báo trong manifest, render bởi core, và bản địa hoá.
+description: Khai báo bảng dữ liệu, menu và màn hình quản lý đa ngôn ngữ cho plugin qua manifest.
 sidebar:
   order: 4
 ---
 
-Một plugin first-party có thể sở hữu các bảng quan hệ và đóng góp một màn hình quản lý đầy đủ — một mục sidebar, một danh sách, và một form tạo/sửa trên dữ liệu của chính nó. Bạn **khai báo** bảng và màn hình trong manifest; core tạo bảng, render màn hình, và thực thi các quyền. Plugin không ship code quản trị nào và không viết SQL nào. Đây là cách một nhà phát triển xây dựng một danh bạ nhân sự, một CRM, một sổ đăng ký tài sản hay một hàng đợi ticket trên Z-CMS mà không đụng tới core.
+Plugin do Z-CMS cung cấp (first-party) có thể sở hữu bảng quan hệ và bổ sung màn hình quản lý dữ liệu gồm menu bên, danh sách và biểu mẫu tạo hoặc sửa bản ghi. Bạn khai báo bảng và màn hình trong manifest; phần lõi Z-CMS tạo bảng, hiển thị giao diện và kiểm tra quyền. Không cần viết SQL hoặc mã giao diện quản trị riêng. Cơ chế này phù hợp để xây dựng danh bạ nhân sự, CRM, sổ quản lý tài sản hoặc hệ thống tiếp nhận yêu cầu hỗ trợ mà không sửa mã lõi.
 
-:::note[Khi nào bạn cần cái này]
-Hãy dùng `ctx.storage` trước — hầu hết plugin không bao giờ cần một bảng quan hệ. Chỉ khai báo `database.tables` khi bạn thực sự có dữ liệu mang tính quan hệ cần liệt kê, lọc và chỉnh sửa. Sở hữu bảng là một đặc quyền **first-party**; một plugin cộng đồng sẽ bị từ chối một khối `database` khi cài đặt và dùng `ctx.storage` thay thế.
+:::note[Khi nào cần bảng quan hệ?]
+Hãy ưu tiên `ctx.storage`; phần lớn plugin không cần bảng riêng. Chỉ khai báo `database.tables` khi dữ liệu thực sự cần cấu trúc quan hệ để liệt kê, lọc và chỉnh sửa. Quyền tạo bảng chỉ dành cho plugin do Z-CMS cung cấp. Plugin cộng đồng có khối `database` sẽ bị từ chối khi cài đặt và cần dùng `ctx.storage` thay thế.
 :::
 
-## Step 1: Khai báo một bảng
+## Bước 1: Khai báo bảng
 
-Thêm một mục `database.tables`. Core biến phần mô tả thành DDL `CREATE TABLE` — bạn không bao giờ viết SQL, nên không có chuỗi do plugin chọn nào chạm tới database dưới bất kỳ dạng nào khác ngoài một định danh đã được xác thực.
+Thêm khai báo vào `database.tables`. Phần lõi chuyển định nghĩa này thành lệnh DDL `CREATE TABLE`. Plugin không gửi SQL tự viết; tên bảng và tên cột đều phải qua kiểm tra trước khi được dùng làm định danh trong truy vấn.
 
 ```json
 {
@@ -42,16 +42,16 @@ Thêm một mục `database.tables`. Core biến phần mô tả thành DDL `CRE
 
 Các quy tắc nền tảng thực thi khi cài đặt:
 
-- **Mọi tên bảng bắt đầu bằng prefix của plugin bạn** — `p_` + id của bạn với các dấu chấm thay bằng gạch dưới + `__`. Một bảng ngoài prefix sẽ bị từ chối. Một plugin không thể đặt tên `content`, `users`, hay bảng của một plugin khác.
-- **Kiểu cột** là một tập đóng: `text`, `integer`, `bigint`, `boolean`, `numeric`, `timestamptz`, `uuid`, `jsonb`.
-- **Cột mặc định là `NOT NULL`.** Đặt `"nullable": true` cho các cột tuỳ chọn, hoặc một `"default"` hằng (một literal, hoặc `"now()"` trên một `timestamptz`).
-- **Core sở hữu năm cột trên mọi bảng** — `id`, `tenant_id`, `site_id`, `created_at`, `updated_at`. Bạn không được khai báo chúng, nhưng bạn có thể đánh index chúng (`site_id` đặc biệt). Mọi hàng được cô lập theo từng tenant bằng row-level security của Postgres.
+- **Tên bảng phải có tiền tố riêng của plugin:** `p_` + ID plugin với dấu chấm được thay bằng dấu gạch dưới + `__`. Tên nằm ngoài tiền tố này sẽ bị từ chối; plugin không thể đặt tên bảng là `content`, `users` hoặc tên bảng của plugin khác.
+- **Kiểu cột chỉ nhận:** `text`, `integer`, `bigint`, `boolean`, `numeric`, `timestamptz`, `uuid`, `jsonb`.
+- **Cột mặc định là `NOT NULL`.** Dùng `"nullable": true` cho cột không bắt buộc hoặc khai báo `"default"` bằng giá trị cố định; cột `timestamptz` còn hỗ trợ `"now()"`.
+- **Năm cột do phần lõi quản lý:** `id`, `tenant_id`, `site_id`, `created_at`, `updated_at`. Không khai báo lại các cột này, nhưng có thể tạo chỉ mục cho chúng, đặc biệt là `site_id`. PostgreSQL Row-Level Security tách biệt dữ liệu của từng tổ chức (tenant).
 
-Các hàng được truy cập lúc runtime thông qua [`ctx.db`](/vi/developers/plugin-handbook/runtime-api/#ctxdb--the-plugins-own-tables), thứ giới hạn mọi truy vấn về site và tenant hiện tại.
+Khi chạy, plugin truy cập bản ghi qua [`ctx.db`](/vi/developers/plugin-handbook/runtime-api/#ctxdb--các-bảng-của-riêng-plugin). Mọi truy vấn đều bị giới hạn trong website và tổ chức hiện tại.
 
-## Step 2: Giới thiệu các quyền để bảo vệ màn hình
+## Bước 2: Khai báo quyền cho màn hình quản trị
 
-Màn hình của một plugin không thuộc quyền bảo vệ của core, nên plugin **tự mang theo** các khoá quyền của mình với `permissionsProvided`. `defaultRoles` cho biết vai trò nào nắm giữ mỗi khoá ngay khi plugin đang hoạt động.
+Màn hình riêng của plugin dùng các quyền do plugin định nghĩa trong `permissionsProvided`, không tự dùng quyền của màn hình lõi. Trường `defaultRoles` xác định các vai trò được cấp từng quyền khi plugin hoạt động.
 
 ```json
 {
@@ -62,11 +62,11 @@ Màn hình của một plugin không thuộc quyền bảo vệ của core, nên
 }
 ```
 
-Một plugin first-party có thể tạo các khoá trần như `crm:read`; các khoá do một plugin cộng đồng cung cấp phải được đặt namespace (`x:<slug>:…`). Chúng khác với `permissions`, vốn là các scope lõi mà plugin *yêu cầu* — xem [Quyền](/vi/developers/plugin-handbook/permissions/).
+Plugin do Z-CMS cung cấp có thể định nghĩa khóa quyền trực tiếp như `crm:read`. Khóa quyền của plugin cộng đồng phải có không gian tên riêng, theo dạng `x:<slug>:…`. Đây là các quyền plugin cung cấp, khác với `permissions` — các quyền nền tảng mà plugin yêu cầu sử dụng. Xem [Quyền của plugin](/vi/developers/plugin-handbook/permissions/).
 
-## Step 3: Thêm một menu và các màn hình
+## Bước 3: Thêm menu và màn hình
 
-Khối `admin` khai báo một mục sidebar (`nav`) và một tài nguyên (`resources`) — một danh sách và một form trên một bảng. Core render cả hai, được kiểm soát bởi các quyền bạn đã nêu tên.
+Khối `admin` khai báo mục menu bên (`nav`) và tài nguyên quản lý (`resources`). Mỗi tài nguyên gồm danh sách và biểu mẫu gắn với một bảng. Phần lõi hiển thị các màn hình này và kiểm soát truy cập theo quyền đã khai báo.
 
 ```json
 {
@@ -109,29 +109,29 @@ Khối `admin` khai báo một mục sidebar (`nav`) và một tài nguyên (`re
 }
 ```
 
-Mỗi cột mà một `nav`, `list` hay `form` nêu tên phải tồn tại trên bảng đứng sau, và mỗi quyền phải là một quyền plugin cung cấp — core xác thực điều này khi cài đặt và từ chối một đóng góp có tham chiếu treo lơ lửng. Một tài nguyên không có quyền `write` là chỉ đọc với mọi người.
+Mọi cột được tham chiếu trong `nav`, `list` hoặc `form` phải tồn tại trong bảng tương ứng. Mọi quyền được dùng phải do plugin cung cấp. Hệ thống kiểm tra các tham chiếu khi cài đặt và từ chối khai báo không hợp lệ. Nếu tài nguyên không khai báo quyền `write`, mọi người dùng chỉ có thể xem.
 
-### Kiểu input của trường
+### Kiểu trường nhập liệu
 
-Input của form được suy ra từ kiểu cột, hoặc bạn có thể đặt tường minh bằng `input`:
+Kiểu ô nhập được suy ra từ kiểu cột. Bạn cũng có thể chỉ định trực tiếp bằng `input`:
 
-| `input` | Render | Tốt cho kiểu cột |
+| `input` | Giao diện | Kiểu cột phù hợp |
 | --- | --- | --- |
-| `text` | Input một dòng | `text`, `uuid` |
-| `textarea` | Input nhiều dòng | `text` |
-| `richtext` | Trình soạn thảo rich-text (lưu HTML) | `text` |
-| `number` | Input số | `integer`, `bigint`, `numeric` |
-| `boolean` | Checkbox | `boolean` |
-| `date` | Bộ chọn ngày-giờ | `timestamptz` |
-| `select` | Dropdown của `options` | `text` |
-| `media` | Bộ chọn thư viện media (lưu một media id) | `uuid`, `text` |
-| `reference` | Id của một hàng liên quan | `uuid`, `text` |
+| `text` | Ô nhập một dòng | `text`, `uuid` |
+| `textarea` | Ô nhập nhiều dòng | `text` |
+| `richtext` | Trình soạn thảo có định dạng, lưu HTML | `text` |
+| `number` | Ô nhập số | `integer`, `bigint`, `numeric` |
+| `boolean` | Hộp kiểm | `boolean` |
+| `date` | Bộ chọn ngày giờ | `timestamptz` |
+| `select` | Danh sách chọn từ `options` | `text` |
+| `media` | Bộ chọn tệp trong thư viện, lưu ID tệp | `uuid`, `text` |
+| `reference` | ID của bản ghi liên quan | `uuid`, `text` |
 
-Core ép mỗi giá trị được post về kiểu đã khai báo của cột và xác thực nó trước khi ghi — một số để trống, một ngày sai hay một giá trị không phải UUID sẽ quay lại dưới dạng một lỗi rõ ràng, đã bản địa hoá thay vì một thất bại từ database.
+Trước khi lưu, phần lõi chuyển đổi và kiểm tra giá trị theo kiểu cột. Các lỗi như trường số bắt buộc bị bỏ trống, ngày không hợp lệ hoặc giá trị sai định dạng UUID được trả về bằng thông báo theo ngôn ngữ giao diện, thay vì lỗi cơ sở dữ liệu khó hiểu.
 
-## Step 4: Bản địa hoá mọi nhãn
+## Bước 4: Dịch các nhãn giao diện
 
-Bất kỳ nhãn nào — một `nav`, tài nguyên, cột, trường, hay một lựa chọn `select` — đều có thể là một chuỗi thuần **hoặc** một map `{ en, vi, ja }`. Core phân giải nó về ngôn ngữ của người đọc (lùi về tiếng Anh), nên một plugin đã cài đặt nói mọi ngôn ngữ mà admin nói. Tiếng Anh (`en`) là bắt buộc trong một map.
+Nhãn menu, tài nguyên, cột, trường hoặc lựa chọn `select` có thể là chuỗi thông thường hoặc đối tượng `{ en, vi, ja }`. Hệ thống chọn bản dịch theo ngôn ngữ của người dùng và dùng tiếng Anh nếu không có bản dịch phù hợp. Vì vậy, đối tượng bản dịch bắt buộc phải có `en`.
 
 ```json
 {
@@ -139,7 +139,7 @@ Bất kỳ nhãn nào — một `nav`, tài nguyên, cột, trường, hay một
 }
 ```
 
-Với một `select`, hãy bản địa hoá **label** nhưng không bao giờ bản địa hoá **value** — value là thứ được lưu vào hàng và phải giữ ổn định qua các ngôn ngữ:
+Với `select`, chỉ dịch **label**, không dịch **value**. `value` được lưu vào bản ghi nên phải giữ nguyên giữa các ngôn ngữ:
 
 ```json
 {
@@ -153,11 +153,11 @@ Với một `select`, hãy bản địa hoá **label** nhưng không bao giờ b
 }
 ```
 
-Một nhãn dạng chuỗi thuần vẫn hoạt động y như trước — bản địa hoá là tuỳ chọn, theo từng trường.
+Bạn có thể chọn dịch từng nhãn; nhãn dạng chuỗi thông thường vẫn hoạt động như trước.
 
-## Step 5: Gieo giá trị mặc định khi kích hoạt
+## Bước 5: Tạo dữ liệu mặc định khi kích hoạt
 
-Dùng `setup` để gieo các hàng demo hoặc mặc định. Hãy làm nó idempotent — `setup` chạy lại trên mỗi lần kích hoạt, và `ctx.db` đã được giới hạn về site này, nên "rỗng" nghĩa là "site này chưa được gieo dữ liệu".
+Dùng `setup` để tạo bản ghi mẫu hoặc dữ liệu mặc định. Hàm này chạy mỗi lần kích hoạt plugin, nên phải bảo đảm chạy lại không tạo dữ liệu trùng. `ctx.db` đã được giới hạn theo website hiện tại; kết quả rỗng nghĩa là website đó chưa có dữ liệu.
 
 ```ts
 setup: async (ctx) => {
@@ -169,13 +169,13 @@ setup: async (ctx) => {
 },
 ```
 
-## Step 6: Phơi bày một danh sách đã lọc cho một theme
+## Bước 6: Cung cấp danh sách có bộ lọc cho theme
 
-Các màn hình quản trị ở trên dành cho người vận hành. Để hiển thị dữ liệu của bạn trên **site công khai** — một lưới sản phẩm đã lọc, một trình tìm cửa hàng, một bảng tin tuyển dụng — theme cần các hàng, nhưng một theme render trên máy chủ và không ship JavaScript nào, nên nó không thể tự truy vấn bất cứ thứ gì. Runtime bắc cầu cho việc này: plugin của bạn trả lời một **public query**, và một widget runtime lấy nó từ trình duyệt và render kết quả.
+Các màn hình trên dành cho người quản trị. Để hiển thị danh sách sản phẩm, vị trí cửa hàng hoặc tin tuyển dụng trên website công khai, theme cần dữ liệu từ plugin. Theme chỉ tạo HTML trên máy chủ và không kèm JavaScript riêng để truy vấn. Nền tảng hỗ trợ qua truy vấn công khai: plugin trả dữ liệu, còn thành phần tương tác do runtime cung cấp sẽ lấy và hiển thị dữ liệu trong trình duyệt.
 
-Hai mảnh, phản chiếu cách một plugin ship một [form](/vi/developers/plugin-handbook/permissions/) công khai:
+Phần tích hợp gồm hai bước, tương tự cách plugin cung cấp [biểu mẫu công khai](/vi/developers/plugin-handbook/permissions/):
 
-**1. Plugin của bạn triển khai một call `query` dưới một capability.** Khai báo capability trong manifest và triển khai call cố định có tên `query`. Nó nhận filter dưới dạng `params` và trả về các hàng (một mảng, hoặc `{ items }`). Chỉ duy nhất call này là có thể tiếp cận công khai — một khách truy cập không bao giờ có thể gọi một call tuỳ ý.
+**1. Plugin triển khai hàm `query` cho một capability.** Khai báo mã tính năng trong manifest và triển khai hàm có tên cố định là `query`. Hàm nhận điều kiện lọc qua `params`, trả về mảng bản ghi hoặc `{ items }`. Khách truy cập chỉ gọi được hàm công khai này, không thể tùy ý gọi các hàm khác của plugin.
 
 ```json
 { "capabilities": ["catalog.search"] }
@@ -201,9 +201,9 @@ export default definePlugin({
 });
 ```
 
-`params` là chuỗi truy vấn, được core làm sạch thành một map nhỏ gồm các chuỗi. Handler của bạn quyết định param nào trở thành filter — không gì là filter trừ khi bạn biến nó thành filter, và `ctx.db` vẫn xác thực mọi cột và giới hạn mọi hàng về site.
+`params` chứa các tham số trên URL đã được phần lõi làm sạch và giới hạn thành một tập nhỏ các chuỗi. Hàm xử lý của bạn quyết định tham số nào được dùng làm điều kiện lọc; hệ thống không tự biến mọi tham số thành bộ lọc. `ctx.db` vẫn kiểm tra tên cột và giới hạn bản ghi theo website.
 
-**2. Theme render một form lọc và một template hàng.** Theme ship HTML thuần được đánh dấu bằng `data-zc-*`; widget runtime nâng cấp nó — fetch `/plugin-query/<capability>` khi submit (hoặc, với `data-zc-auto`, ngay khi khách truy cập gõ) và render mỗi hàng trả về vào template. Các giá trị được viết dưới dạng **text** và các liên kết bị từ chối trừ khi là `http(s)`/tương đối, nên một hàng không bao giờ có thể chèn markup.
+**2. Theme tạo biểu mẫu lọc và mẫu hiển thị bản ghi.** Theme xuất HTML có các thuộc tính `data-zc-*`. Thành phần tương tác của runtime gọi `/plugin-query/<capability>` khi gửi biểu mẫu, hoặc ngay khi nhập nếu có `data-zc-auto`, rồi điền kết quả vào mẫu. Giá trị được chèn dưới dạng văn bản; liên kết chỉ chấp nhận URL HTTP(S) hoặc đường dẫn tương đối. Vì vậy, dữ liệu bản ghi không được diễn giải thành mã HTML.
 
 ```html
 <form data-zc-query="catalog.search" data-zc-target="#results" data-zc-auto>
@@ -226,24 +226,24 @@ export default definePlugin({
 </ul>
 ```
 
-Giao ước:
+Các thuộc tính cần dùng:
 
-- `data-zc-query="<capability>"` trên `<form>` — các input có thuộc tính `name` của nó trở thành các query param.
-- `data-zc-target="#sel"` trỏ tới container kết quả (mặc định là phần tử liền kề sau form); `data-zc-auto` fetch ngay khi khách truy cập gõ; `data-zc-initial` fetch một lần khi tải.
-- Một `<template data-zc-query-item>` chứa một hàng. `data-zc-field="col"` đặt cột đó thành text; `data-zc-href="col"` đặt một href an toàn.
-- `[data-zc-query-empty]` và `[data-zc-query-error]` tuỳ chọn được hiển thị khi không có hàng nào / khi việc fetch thất bại.
+- `data-zc-query="<capability>"` trên `<form>`: các ô nhập có thuộc tính `name` trở thành tham số truy vấn.
+- `data-zc-target="#sel"`: chọn vùng hiển thị kết quả; mặc định là phần tử ngay sau biểu mẫu. `data-zc-auto` tải dữ liệu khi người dùng nhập; `data-zc-initial` tải một lần khi trang mở.
+- `<template data-zc-query-item>`: mẫu cho một bản ghi. `data-zc-field="col"` điền giá trị cột dưới dạng văn bản; `data-zc-href="col"` gán liên kết sau khi kiểm tra URL.
+- `[data-zc-query-empty]` và `[data-zc-query-error]`: các phần tử tùy chọn, hiển thị khi không có kết quả hoặc khi tải dữ liệu thất bại.
 
-Không có JavaScript, khách truy cập vẫn thấy bất cứ thứ gì theme đã render trên máy chủ (ví dụ một danh sách chưa lọc); widget bổ sung thêm chế độ xem trực tiếp, đã lọc lên trên. Endpoint là chỉ đọc và bị giới hạn tần suất theo từng IP.
+Nếu trình duyệt không chạy JavaScript, người dùng vẫn thấy HTML mà theme đã tạo trên máy chủ, chẳng hạn danh sách chưa lọc. Thành phần tương tác bổ sung khả năng lọc và cập nhật kết quả trực tiếp. Điểm truy cập này chỉ cho phép đọc và giới hạn tần suất theo địa chỉ IP.
 
-:::caution[Public query là công khai]
-Bất cứ thứ gì handler `query` của bạn trả về đều được phục vụ cho khách truy cập ẩn danh. Chỉ trả về các trường an toàn để công bố — không bao giờ là giá vốn, một email, hay một ghi chú nội bộ. Một danh sách hậu trường (như màn hình khách hàng ở trên) **không** nên được phơi bày dưới dạng một public query.
+:::caution[Truy vấn công khai không yêu cầu đăng nhập]
+Bất kỳ dữ liệu nào hàm `query` trả về đều có thể được khách chưa đăng nhập đọc. Chỉ trả về các trường được phép công khai; không trả về giá vốn, email cá nhân hoặc ghi chú nội bộ. Danh sách phục vụ quản trị, như màn hình khách hàng ở trên, không nên được cung cấp qua truy vấn công khai.
 :::
 
-## Những gì core thực thi
+## Các quy tắc do nền tảng thực thi
 
-- Tên bảng nằm trong prefix của bạn; core phát ra DDL, plugin không bao giờ viết SQL.
-- Mọi cột `nav`/`list`/`form` tồn tại trên bảng; mọi quyền là một quyền bạn cung cấp.
-- Mỗi hàng được giới hạn về tenant và site hiện tại trên mọi lần đọc và ghi, bởi token và bởi Postgres RLS.
-- Các giá trị form được post bị ép kiểu và xác thực đối chiếu với kiểu cột trước khi ghi.
+- Tên bảng phải có tiền tố riêng của plugin; phần lõi tạo DDL, plugin không tự viết SQL.
+- Cột được tham chiếu trong `nav`/`list`/`form` phải tồn tại; quyền được tham chiếu phải do plugin cung cấp.
+- Mọi thao tác đọc và ghi đều bị giới hạn theo tổ chức và website hiện tại, thông qua token và PostgreSQL RLS.
+- Dữ liệu gửi từ biểu mẫu được chuyển kiểu và kiểm tra trước khi lưu.
 
-Hai plugin đi kèm trong mã nguồn Z-CMS là các ví dụ hoàn chỉnh, chạy được: **Customers (CRM)** (`plugins/crm`) minh hoạ bảng và màn hình admin, còn **Product Catalog** (`plugins/catalog`) bổ sung truy vấn công khai `catalog.search` và widget filter cho storefront ở Step 6.
+Mã nguồn Z-CMS có hai plugin mẫu hoàn chỉnh: **Customers (CRM)** (`plugins/crm`) minh họa bảng dữ liệu và màn hình quản trị; **Product Catalog** (`plugins/catalog`) bổ sung truy vấn công khai `catalog.search` và bộ lọc danh sách sản phẩm được mô tả ở Bước 6.

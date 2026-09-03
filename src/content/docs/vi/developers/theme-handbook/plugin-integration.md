@@ -1,19 +1,19 @@
 ---
 title: Tích hợp theme với plugin
-description: Sử dụng capability và block có namespace mà không làm theme phụ thuộc vào code nội bộ của plugin.
+description: Kết nối theme với tính năng của plugin qua capability và khối nội dung có không gian tên riêng.
 sidebar:
   order: 3
 ---
 
-Theme và plugin không import lẫn nhau. Plugin công bố một capability, render payload cho biết capability nào đang hoạt động và theme kiểm tra bằng `ctx.hasCapability()`.
+Theme và plugin không nhập mã của nhau. Plugin công bố mã tính năng (capability); dữ liệu phục vụ hiển thị của nền tảng cho biết các tính năng nào đang hoạt động. Theme kiểm tra thông tin này bằng `ctx.hasCapability()`.
 
-:::note[Capability chứa gì?]
-Capability chỉ là mã nhận diện tính năng, ví dụ `commerce.products` hoặc `reviews.summary`. Nó không chứa dữ liệu của plugin và không cho theme quyền truy cập plugin settings, storage, database table hoặc API.
+:::note[Capability là gì?]
+Capability là mã nhận diện tính năng, ví dụ `commerce.products` hoặc `reviews.summary`. Mã này không chứa dữ liệu và không cấp cho theme quyền truy cập cấu hình, kho lưu trữ, bảng dữ liệu hoặc API của plugin.
 :::
 
-## Bước 1: Xác định public contract
+## Bước 1: Xác định giao thức tích hợp công khai
 
-Chọn một capability ổn định, có namespace và mô tả tính năng thay vì tên implementation cụ thể.
+Chọn mã tính năng ổn định, có không gian tên riêng và mô tả chức năng, không gắn với một cách triển khai cụ thể.
 
 Ví dụ phù hợp:
 
@@ -25,9 +25,9 @@ Không nên dùng tên gắn với một lần cài hoặc phiên bản như `ac
 
 Tiếp theo, xác định nguồn của dữ liệu công khai:
 
-- Dùng block props nếu dữ liệu là một phần của page document đã lưu.
-- Dùng một field trong platform render payload nếu dữ liệu phải được tạo động cho mỗi request. Cách này cần thay đổi contract của Z-CMS core.
-- Không để theme gọi endpoint riêng của plugin hoặc CMS.
+- Dùng thuộc tính của khối (props) nếu dữ liệu đã được lưu trong nội dung trang.
+- Dùng trường trong dữ liệu hiển thị do nền tảng cung cấp nếu dữ liệu phải được tạo động theo từng yêu cầu. Cách này cần thay đổi giao thức dữ liệu của phần lõi Z-CMS.
+- Không để theme gọi điểm truy cập riêng của plugin hoặc CMS.
 
 ## Bước 2: Công bố capability từ plugin
 
@@ -40,7 +40,7 @@ Thêm capability vào `plugin.json` của plugin:
 }
 ```
 
-Chỉ plugin đã cài **và đang hoạt động** mới đóng góp capability vào render payload của website. Khi plugin bị tắt, capability cũng biến mất.
+Chỉ plugin đã cài và đang hoạt động mới bổ sung capability vào dữ liệu hiển thị của website. Khi tắt plugin, capability tương ứng cũng không còn được cung cấp.
 
 ## Bước 3: Khai báo capability tùy chọn trong theme
 
@@ -55,7 +55,7 @@ Thêm capability vào `theme.json`:
 
 Capability này phải là tùy chọn. Theme vẫn phải hiển thị được khi plugin chưa cài, bị tắt hoặc được thay bằng plugin khác.
 
-## Bước 4: Kiểm tra tính năng trong template
+## Bước 4: Kiểm tra tính năng trong mẫu trang
 
 Dùng `ctx.hasCapability()` và luôn có cách hiển thị thay thế.
 
@@ -73,13 +73,13 @@ function ProductPage({ ctx, content }: PageTemplateProps<Settings>) {
 }
 ```
 
-Capability chỉ trả lời câu hỏi “có provider đang hoạt động hay không?”. Nó không trả về review hoặc record khác của plugin.
+Capability chỉ cho biết có plugin đang cung cấp tính năng đó hay không. Nó không trả về đánh giá, sản phẩm hay bản ghi khác của plugin.
 
-## Bước 5: Hiển thị block liên quan đến plugin
+## Bước 5: Hiển thị khối nội dung liên quan đến plugin
 
-Nếu page document chứa block có namespace và dữ liệu công khai nằm trong props, hãy đăng ký component hiển thị block đó trong theme.
+Nếu nội dung trang chứa khối có không gian tên riêng và dữ liệu công khai nằm trong props, hãy đăng ký thành phần hiển thị khối đó trong theme.
 
-Ví dụ block được lưu trong `content.blocks`:
+Ví dụ khối được lưu trong `content.blocks`:
 
 ```json
 {
@@ -92,7 +92,7 @@ Ví dụ block được lưu trong `content.blocks`:
 }
 ```
 
-Component trong theme:
+Thành phần hiển thị trong theme:
 
 ```tsx
 interface ReviewSummaryProps {
@@ -124,7 +124,7 @@ const blocks = {
 };
 ```
 
-Hãy kiểm tra props của block do plugin cung cấp giống như core block. Đây là giá trị JSON, có thể bị thiếu hoặc đến từ phiên bản plugin cũ.
+Kiểm tra props của khối do plugin cung cấp như với khối tích hợp sẵn của Z-CMS. Các giá trị JSON có thể thiếu hoặc vẫn dùng định dạng của phiên bản plugin cũ.
 
 ## Bước 6: Xử lý khi plugin bị thiếu hoặc thay đổi
 
@@ -132,33 +132,24 @@ Kiểm tra tất cả trạng thái sau:
 
 1. Plugin chưa được cài.
 2. Plugin đã cài nhưng chưa hoạt động.
-3. Plugin đang hoạt động và có đầy đủ block data.
-4. Capability tồn tại nhưng block props rỗng hoặc dùng schema cũ.
-5. Page còn block nhưng plugin không còn cung cấp capability.
+3. Plugin đang hoạt động và có đủ dữ liệu khối.
+4. Capability tồn tại nhưng props rỗng hoặc dùng cấu trúc cũ.
+5. Trang vẫn còn khối nhưng plugin không còn cung cấp capability.
 
-Page phải sử dụng được trong mọi trạng thái. Không để navigation, tiêu đề hoặc nội dung chính phụ thuộc hoàn toàn vào một capability tùy chọn.
+Trang phải sử dụng được trong mọi trường hợp. Không để điều hướng, tiêu đề hoặc nội dung chính phụ thuộc hoàn toàn vào một tính năng tùy chọn.
 
-## Giới hạn của contract hiện tại
+## Giới hạn của cơ chế tích hợp hiện tại
 
-Theme SDK đã có contract dùng chung để theme tích hợp **gián tiếp** với plugin:
-`ctx.hasCapability()` phát hiện tính năng, `ctx.getIntegration()` đọc phần dữ liệu
-công khai do core allow-list, và `ctx.renderSlot()` đặt UI tương tác do runtime
-quản lý. Theme không import plugin và không nhận credential của plugin.
+Theme SDK hỗ trợ tích hợp gián tiếp với plugin: `ctx.hasCapability()` phát hiện tính năng, `ctx.getIntegration()` đọc dữ liệu công khai đã được phần lõi cho phép, còn `ctx.renderSlot()` bố trí giao diện tương tác do runtime quản lý. Theme không nhập mã hoặc nhận thông tin xác thực của plugin.
 
-Contract hiện tại vẫn chưa cho phép:
+Cơ chế hiện tại không cho phép theme:
 
-- trực tiếp gọi tùy ý một plugin handler từ theme (không có
-  `ctx.callPlugin()` hoặc `ctx.callCapability()`);
-- đọc settings hoặc storage của plugin;
-- query database table do plugin sở hữu;
-- lấy dữ liệu plugin bất kỳ qua `ctx.hasCapability()`;
-- để một package tự đăng ký thêm payload động mới.
+- Gọi tùy ý hàm xử lý của plugin; không có `ctx.callPlugin()` hoặc `ctx.callCapability()`.
+- Đọc cấu hình hoặc kho lưu trữ của plugin.
+- Truy vấn trực tiếp bảng dữ liệu riêng của plugin.
+- Lấy dữ liệu plugin tùy ý qua `ctx.hasCapability()`.
+- Tự đăng ký định dạng dữ liệu động mới chỉ bằng một gói cài đặt.
 
-Nếu tính năng cần dữ liệu hoặc action theo từng request, core phải định nghĩa và
-allow-list public projection hoặc integration action tương ứng. Ví dụ hiện tại,
-`ai.assistant` công khai dữ liệu hiển thị qua `getIntegration()`, đặt chat UI qua
-`renderSlot("floating")`, và chỉ action `chat` được gateway cho phép. Đây không
-phải một proxy tổng quát để theme gọi bất kỳ plugin nào. Hướng dẫn theme gọi
-private API vẫn tạo ra theme không được hỗ trợ và không an toàn.
+Nếu cần dữ liệu hoặc thao tác theo từng yêu cầu, phần lõi phải định nghĩa và cho phép phần dữ liệu công khai hoặc thao tác tích hợp tương ứng. Chẳng hạn, `ai.assistant` cung cấp dữ liệu hiển thị qua `getIntegration()`, đặt giao diện trò chuyện qua `renderSlot("floating")` và chỉ cho phép thao tác `chat` qua gateway. Đây không phải cơ chế để theme gọi tùy ý plugin. Hướng dẫn theme gọi API riêng vẫn nằm ngoài phạm vi hỗ trợ và không bảo đảm an toàn.
 
-Xem [Hiển thị page và bài viết blog](/vi/developers/theme-handbook/rendering-content/) để hiểu đầy đủ luồng dữ liệu của template.
+Xem [Hiển thị trang và bài viết](/vi/developers/theme-handbook/rendering-content/) để hiểu luồng dữ liệu đầy đủ của mẫu trang.

@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Z-CMS は、Node.js、pnpm、Next.js、NestJS、PostgreSQL、Redis で構成された TypeScript モノレポです。
+Z-CMS のコードは TypeScript で記述され、一つのリポジトリ（モノレポ）で管理されています。Node.js、pnpm、Next.js、NestJS、PostgreSQL、Redis を使用します。
 
 ## 必要な環境
 
@@ -31,7 +31,7 @@ pnpm test
 pnpm verify
 ```
 
-`pnpm verify` はテナント分離、サンドボックスからの脱出、パッケージ署名など、重要なセキュリティ要件を検証します。
+`pnpm verify` では、テナント間のデータ分離、サンドボックス外へのアクセスの防止、パッケージ署名の検証など、重要なセキュリティ要件を確認します。
 
 ## 拡張機能を開発する
 
@@ -42,9 +42,9 @@ npm install -g @zcmsorg/cli@latest
 zcms init
 ```
 
-`init` はプラグインとテーマのどちらを作るかを尋ね、ビルド、型チェック、テスト、パッケージ化、署名に必要な設定を含むプロジェクトを生成します。実際のサイトでしか検証されない 2 つのビルド要件も、最初から満たしています。
+`init` でプラグインかテーマかを選ぶと、ビルド、型チェック、テスト、パッケージ化、署名に必要な設定を含むプロジェクトが生成されます。実際のサイトで実行する際に必要な出力形式も、あらかじめ設定されています。
 
-そのうえで、開発対象に合った手順を選択してください。
+続いて、開発する内容に合うガイドを参照してください。
 
 - [プラグインを作成する](/ja/developers/plugin-handbook/getting-started/)
 - [テーマを作成する](/ja/developers/theme-handbook/getting-started/)

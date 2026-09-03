@@ -1,27 +1,27 @@
 ---
-title: Hiển thị page và bài viết blog
-description: Cách site-runtime truyền nội dung cho theme và cách hiển thị page, bài viết, trang danh sách, field, block, menu và link đa ngôn ngữ.
+title: Hiển thị trang và bài viết
+description: Hiển thị nội dung, danh sách, trường dữ liệu, khối, menu và liên kết đa ngôn ngữ từ dữ liệu site-runtime cung cấp.
 sidebar:
   order: 2
 ---
 
-Theme Z-CMS **không gọi Content API** để lấy page hoặc bài viết blog. Với mỗi URL công khai, `site-runtime` xác định website và truyền kết quả cho theme đang hoạt động. Theme chỉ hiển thị dữ liệu được nhận.
+Theme Z-CMS không gọi Content API để lấy trang hoặc bài viết. Với mỗi URL công khai, `site-runtime` xác định website và chuyển dữ liệu tới theme đang hoạt động. Theme chỉ hiển thị dữ liệu nhận được.
 
-Luồng xử lý một request:
+Một yêu cầu được xử lý theo thứ tự:
 
-1. Người dùng mở một URL công khai.
+1. Khách truy cập mở URL công khai.
 2. `site-runtime` gọi Render API nội bộ một lần.
-3. API xác định hostname, ngôn ngữ, route, nội dung đã xuất bản, menu, cấu hình theme và capability của các plugin đang hoạt động.
-4. `site-runtime` chọn template phù hợp trong theme.
-5. Template hiển thị `content`, `archive` và `ctx`.
+3. API xác định tên máy chủ, ngôn ngữ, đường dẫn, nội dung đã xuất bản, menu, cấu hình theme và capability của các plugin đang hoạt động.
+4. `site-runtime` chọn mẫu trang phù hợp.
+5. Mẫu trang hiển thị dữ liệu từ `content`, `archive` và `ctx`.
 
 :::caution[Không gọi Render API từ theme]
-Request nội bộ là `GET /api/v1/render/resolve` và cần internal token. Request này thuộc trách nhiệm của `site-runtime`, không phải code của theme. Không import API client, gọi `fetch` hoặc đưa token này vào theme.
+Yêu cầu nội bộ `GET /api/v1/render/resolve` cần token nội bộ và do `site-runtime` thực hiện. Theme không được tự gửi yêu cầu này. Không nhập thư viện gọi API, gọi `fetch` hoặc nhúng token nội bộ vào theme.
 :::
 
-## Bước 1: Import type cho template
+## Bước 1: Nhập kiểu dữ liệu cho mẫu trang
 
-Dùng type từ `@zcmsorg/theme-sdk` để input của template luôn khớp với contract của runtime.
+Dùng kiểu dữ liệu từ `@zcmsorg/theme-sdk` để đầu vào của mẫu trang khớp với giao thức dữ liệu của runtime.
 
 ```tsx
 import {
@@ -39,11 +39,11 @@ interface Settings {
 }
 ```
 
-Không import type từ `cms-api`, `site-runtime`, Prisma hoặc module nội bộ khác của Z-CMS.
+Không nhập kiểu dữ liệu từ `cms-api`, `site-runtime`, Prisma hoặc các module nội bộ khác của Z-CMS.
 
-## Bước 2: Hiển thị một page
+## Bước 2: Hiển thị trang nội dung
 
-Runtime truyền page đã xuất bản và khớp với URL vào `content`.
+Runtime truyền trang đã xuất bản, khớp với URL, vào `content`.
 
 ```tsx
 function Page({ ctx, content }: PageTemplateProps<Settings>) {
@@ -57,25 +57,25 @@ function Page({ ctx, content }: PageTemplateProps<Settings>) {
 }
 ```
 
-Các field thường dùng trong `content`:
+Các trường thường dùng trong `content`:
 
-| Field | Mục đích |
+| Trường | Mục đích |
 | --- | --- |
-| `title` | Tiêu đề page hoặc bài viết |
+| `title` | Tiêu đề trang hoặc bài viết |
 | `excerpt` | Phần tóm tắt, có thể không có |
-| `path` | Đường dẫn nội dung trước khi xử lý tiền tố ngôn ngữ |
-| `contentType.key` | Loại nội dung, ví dụ `page` hoặc `post` |
-| `data` | Các field tùy chỉnh của content type |
-| `blocks` | Danh sách block được tạo trong editor |
-| `publishedAt` | Thời gian xuất bản hoặc `null` |
+| `path` | Đường dẫn nội dung trước khi thêm tiền tố ngôn ngữ |
+| `contentType.key` | Mã loại nội dung, ví dụ `page` hoặc `post` |
+| `data` | Các trường tùy chỉnh của loại nội dung |
+| `blocks` | Danh sách khối được tạo trong trình soạn thảo |
+| `publishedAt` | Thời điểm xuất bản hoặc `null` |
 | `author` | Thông tin tác giả hoặc `null` |
-| `seo` | Dữ liệu SEO đã xử lý cho nội dung |
+| `seo` | Dữ liệu SEO đã được xử lý |
 
-Chỉ nội dung đã xuất bản mới được đưa vào public render payload. Theme không cần tự lọc nội dung nháp.
+Dữ liệu hiển thị công khai chỉ chứa nội dung đã xuất bản. Theme không cần tự loại bỏ bản nháp.
 
-## Bước 3: Đọc custom field an toàn
+## Bước 3: Đọc trường tùy chỉnh an toàn
 
-Các giá trị trong `content.data` là JSON nên có type `unknown`. Hãy kiểm tra từng giá trị trước khi hiển thị.
+Các giá trị trong `content.data` là JSON và có kiểu `unknown`. Hãy kiểm tra từng giá trị trước khi hiển thị.
 
 ```tsx
 function text(value: unknown, fallback = ""): string {
@@ -95,11 +95,11 @@ function Page({ ctx, content }: PageTemplateProps<Settings>) {
 }
 ```
 
-Không ép toàn bộ `content.data` sang một interface đáng tin cậy nếu theme không kiểm tra dữ liệu lúc chạy. Chủ website có thể thay đổi field của content type mà không phát hành phiên bản theme mới.
+Không dùng phép ép kiểu để mặc nhiên coi toàn bộ `content.data` là dữ liệu hợp lệ. Theme cần kiểm tra giá trị khi chạy, vì chủ website có thể thay đổi trường của loại nội dung mà không cập nhật theme.
 
 ## Bước 4: Hiển thị một bài viết blog
 
-Khi `content.contentType.key` là `post`, `site-runtime` chọn `templates.post`. Nếu theme không khai báo template này, runtime dùng `templates.page`.
+Khi `content.contentType.key` là `post`, `site-runtime` chọn `templates.post`. Nếu theme không có mẫu này, runtime dùng `templates.page`.
 
 ```tsx
 function Post({ ctx, content }: PageTemplateProps<Settings>) {
@@ -121,7 +121,7 @@ function Post({ ctx, content }: PageTemplateProps<Settings>) {
 
 ## Bước 5: Hiển thị danh sách bài viết blog
 
-Route danh sách như `/blog` nhận `archive` thay vì `content`. Runtime truyền danh sách bài viết đã xuất bản và thông tin phân trang.
+Đường dẫn danh sách như `/blog` nhận `archive` thay vì `content`, gồm các bài viết đã xuất bản và thông tin phân trang.
 
 ```tsx
 function Archive({ ctx, archive }: ArchiveTemplateProps<Settings>) {
@@ -153,11 +153,11 @@ function Archive({ ctx, archive }: ArchiveTemplateProps<Settings>) {
 }
 ```
 
-Luôn truyền đường dẫn nội bộ của content và archive qua `ctx.url()`. Hàm này thêm đúng tiền tố ngôn ngữ và giữ nguyên query string. Các path trong `ctx.alternates` đã hoàn chỉnh nên **không** truyền qua `ctx.url()`.
+Luôn dùng `ctx.url()` cho đường dẫn nội bộ của nội dung và trang danh sách. Hàm thêm đúng tiền tố ngôn ngữ và giữ nguyên chuỗi truy vấn. Riêng các đường dẫn trong `ctx.alternates` đã hoàn chỉnh, nên không truyền lại qua `ctx.url()`.
 
-## Bước 6: Đăng ký template
+## Bước 6: Đăng ký mẫu trang
 
-Template `page` là bắt buộc. Các template nội dung khác có thể dùng `page` làm fallback; riêng archive route cần có `archive`.
+Mẫu `page` là bắt buộc. Các mẫu nội dung khác có thể dùng `page` làm phương án dự phòng; riêng đường dẫn danh sách cần mẫu `archive`.
 
 ```tsx
 export default defineTheme<Settings>({
@@ -175,17 +175,17 @@ export default defineTheme<Settings>({
 });
 ```
 
-| Request | Template do runtime chọn |
+| Yêu cầu | Mẫu được runtime chọn |
 | --- | --- |
-| `/` có nội dung trang chủ | `home`, fallback sang `page` |
-| Nội dung có key là `post` | `post`, fallback sang `page` |
+| `/` có nội dung trang chủ | `home`; nếu không có mẫu này thì dùng `page` |
+| Nội dung có khóa `post` | `post`; nếu không có mẫu này thì dùng `page` |
 | Nội dung khác | `page` |
-| Archive của content type, ví dụ `/blog` | `archive` |
+| Danh sách của một loại nội dung, ví dụ `/blog` | `archive` |
 | Đường dẫn không tồn tại | `notFound` |
 
-## Bước 7: Hiển thị block
+## Bước 7: Hiển thị khối nội dung
 
-Gọi `ctx.renderBlocks(content.blocks)` thay vì tự lặp qua danh sách block trong từng template. Đăng ký component cho mỗi loại block mà theme hỗ trợ.
+Gọi `ctx.renderBlocks(content.blocks)` thay vì tự duyệt từng khối trong mỗi mẫu trang. Đăng ký thành phần hiển thị cho từng loại khối mà theme hỗ trợ.
 
 ```tsx
 import type { BlockProps } from "@zcmsorg/theme-sdk";
@@ -212,27 +212,27 @@ const blocks = {
 };
 ```
 
-Tên loại block phải có namespace. Trong môi trường development, block chưa được theme hỗ trợ sẽ hiện cảnh báo; trong production, block đó bị bỏ qua. Vì vậy cần kiểm tra tất cả loại block mà website mục tiêu đang dùng.
+Tên loại khối phải có không gian tên riêng. Khối chưa được hỗ trợ sẽ hiển thị cảnh báo trong môi trường phát triển và bị bỏ qua trên hệ thống chạy thực tế. Hãy kiểm tra tất cả loại khối mà website mục tiêu sử dụng.
 
-## Bước 8: Hiển thị menu, asset và link đa ngôn ngữ
+## Bước 8: Hiển thị menu, tài nguyên và liên kết đa ngôn ngữ
 
-- Đọc vị trí menu từ `ctx.menus.primary`, `ctx.menus.footer` hoặc key khác đã khai báo trong `theme.json`.
-- Dùng `ctx.url(path)` cho link nội bộ.
-- Dùng `ctx.asset("assets/logo.png")` cho file nằm trong package theme.
-- Dùng `ctx.site.brand` cho logo và màu chính của website.
-- Dùng `ctx.settings` cho thiết lập do theme khai báo.
-- Dùng `ctx.alternates` để tạo bộ chuyển ngôn ngữ.
+- Đọc menu từ `ctx.menus.primary`, `ctx.menus.footer` hoặc khóa khác đã khai báo trong `theme.json`.
+- Dùng `ctx.url(path)` cho liên kết nội bộ.
+- Dùng `ctx.asset("assets/logo.png")` cho tệp nằm trong gói theme.
+- Dùng `ctx.site.brand` cho logo và màu chủ đạo của website.
+- Dùng `ctx.settings` cho cấu hình riêng của theme.
+- Dùng `ctx.alternates` để tạo danh sách chuyển ngôn ngữ.
 
 ## Bước 9: Kiểm tra toàn bộ luồng nội dung
 
 Trước khi đóng gói, hãy kiểm tra:
 
-1. Page có và không có excerpt.
-2. Page chứa tất cả core block mà theme hỗ trợ.
+1. Trang có và không có phần tóm tắt.
+2. Trang chứa đủ các khối tích hợp sẵn mà theme hỗ trợ.
 3. Bài viết có và không có tác giả hoặc ngày xuất bản.
-4. Archive blog rỗng và archive có nhiều trang.
-5. Custom field bị thiếu hoặc có giá trị sai kiểu.
-6. Ngôn ngữ mặc định và ngôn ngữ phụ, đặc biệt là link phân trang archive.
-7. Block chưa được hỗ trợ để xác nhận page vẫn hiển thị.
+4. Danh sách bài viết rỗng và danh sách có nhiều trang.
+5. Trường tùy chỉnh bị thiếu hoặc sai kiểu dữ liệu.
+6. Ngôn ngữ mặc định và các ngôn ngữ khác, đặc biệt là liên kết phân trang.
+7. Khối chưa được hỗ trợ, để xác nhận trang vẫn hiển thị.
 
 Tiếp theo, xem cách [tích hợp theme với plugin](/vi/developers/theme-handbook/plugin-integration/).

@@ -5,17 +5,11 @@ sidebar:
   order: 1
 ---
 
-Z-CMS を実行するのに、ソースからビルドする必要は **ありません**。マルチアーキ
-テクチャ（`linux/amd64` + `linux/arm64`）の公式イメージが Docker Hub の
-[`zcms`](https://hub.docker.com/u/zcms) で公開され、リリースごとに更新されます。
+Z-CMS は、ソースからビルドしなくても導入できます。`linux/amd64` と `linux/arm64` に対応した公式 Docker イメージを、Docker Hub の [`zcms`](https://hub.docker.com/u/zcms) で提供しています。イメージはリリースごとに更新されます。
 
 ## 公式イメージでデプロイする（推奨）
 
-[**z-cms-docker-offical-image**](https://github.com/zscontributor/z-cms-docker-offical-image)
-リポジトリが、稼働中インスタンスへの最短ルートです。公式イメージを取得する完全な
-`docker compose` スタック、すぐ使えるリバースプロキシ設定（Traefik、Caddy、Nginx、
-Apache、Portainer）、各設定を説明する `.env`、シークレット生成と初回シード用の
-ヘルパースクリプトを提供します。
+[**z-cms-docker-offical-image**](https://github.com/zscontributor/z-cms-docker-offical-image) リポジトリには、公式イメージで Z-CMS を起動するための設定がそろっています。`docker compose` の構成、リバースプロキシの設定例（Traefik、Caddy、Nginx、Apache、Portainer）、変数の説明付き `.env`、秘密情報の生成と初期データ登録用のスクリプトが含まれます。
 
 ```bash
 git clone https://github.com/zscontributor/z-cms-docker-offical-image.git zcms
@@ -32,37 +26,31 @@ docker compose up -d
 ./scripts/first-run-seed.sh
 ```
 
-自動 HTTPS 付きの公開ドメインで運用するには、リバースプロキシのオーバーレイを
-重ねます（例: Traefik）:
+公開ドメインで HTTPS を自動設定するには、リバースプロキシ用の Compose 設定を追加します。Traefik を使う例は次のとおりです。
 
 ```bash
 docker compose -f docker-compose.yml -f compose/traefik.yml up -d
 ./scripts/first-run-seed.sh -f docker-compose.yml -f compose/traefik.yml
 ```
 
-各プロキシは `/api` → API、`/admin` → 管理 UI、`/zcms-media` → メディア、その他
-すべて → 公開サイト、へルーティングします。設定・アップグレード・バックアップ・
-本番向けハードニングの詳細ガイドは、そのリポジトリにあります。
+リバースプロキシは `/api` を API、`/admin` を管理画面、`/zcms-media` をメディア配信へ転送し、それ以外を公開サイトへ振り分けます。設定、アップグレード、バックアップ、本番環境のセキュリティ対策は、同リポジトリのガイドを参照してください。
 
 :::tip
-本番では再現性のあるロールアウトと容易なロールバックのため、`ZCMS_VERSION` を
-特定のリリースタグ（例: `0.1.0`）に固定してください。`latest` は最新リリースを
-追従します。
+本番環境では `ZCMS_VERSION` を `0.1.0` などの特定のリリースタグに固定してください。同じバージョンを再配置しやすくなり、問題があったときも以前のバージョンに戻せます。`latest` は常に最新リリースを指します。
 :::
 
 ## 公開されているイメージ
 
 | イメージ | 役割 |
 | --- | --- |
-| `zcms/cms-api` | コア API（DB/S3 認証情報を保持） |
-| `zcms/site-runtime` | 公開サイト（テーマコードを実行 — ハードニング済み） |
-| `zcms/admin-web` | 管理 UI |
-| `zcms/worker` | バックグラウンドジョブ |
-| `zcms/plugin-runtime` | 信頼できないプラグインのサンドボックス（認証情報なし） |
-| `zcms/migrate` | 単発実行: マイグレーション + 署名付き組み込みの登録 |
+| `zcms/cms-api` | コア API。データベースと S3 の認証情報を保持します。 |
+| `zcms/site-runtime` | セキュリティ対策を施した環境でテーマを実行し、公開サイトを表示します。 |
+| `zcms/admin-web` | 管理画面。 |
+| `zcms/worker` | バックグラウンドジョブの処理。 |
+| `zcms/plugin-runtime` | 認証情報を持たない、プラグイン実行用のサンドボックス。 |
+| `zcms/migrate` | データ移行と署名済み組み込みパッケージの登録を一度実行します。 |
 
-完全なデプロイには PostgreSQL、Redis、S3 互換オブジェクトストレージも必要です
-（compose スタックに同梱、またはマネージドプロバイダーを指定）。
+このほかに PostgreSQL、Redis、S3 互換のオブジェクトストレージが必要です。Compose に含まれるサービスを使うか、外部のマネージドサービスに接続します。
 
 ## チェックリスト
 
@@ -82,8 +70,4 @@ docker compose -f docker-compose.yml -f compose/traefik.yml up -d
 
 ## 独自イメージのビルド
 
-フォークやカスタムビルドの場合にのみ必要です。配布リポジトリには、ソースモノレポ
-から 6 つのイメージをマルチアーキテクチャでビルドする GitHub Actions ワークフローと
-`scripts/build-and-push.sh` が同梱されています。組み込みテーマ/プラグインを変更する
-フォークは、自身の鍵で署名し直し、対応する公開鍵を `FIRST_PARTY_PUBLIC_KEY` として
-すべての場所に設定する必要があります。
+独自のフォークやカスタムビルドを運用する場合にのみ必要です。配布リポジトリには、ソースのモノレポから六つのマルチアーキテクチャイメージを作成する GitHub Actions ワークフローと `scripts/build-and-push.sh` があります。組み込みのテーマやプラグインを変更した場合は、自分の鍵で署名し直し、対応する公開鍵をすべての関連コンポーネントの `FIRST_PARTY_PUBLIC_KEY` に設定してください。

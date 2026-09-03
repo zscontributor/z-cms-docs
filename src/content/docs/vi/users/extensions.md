@@ -1,48 +1,48 @@
 ---
 title: Theme và plugin
-description: Cài và quản lý extension từ Z-CMS Marketplace.
+description: Cài đặt và quản lý theme, plugin từ Z-CMS Marketplace.
 sidebar:
   order: 6
 ---
 
-Z-CMS phân phối theme và plugin dưới dạng package đã ký. Hệ thống xác minh chữ ký trước khi import package.
+Z-CMS phân phối theme và plugin dưới dạng gói cài đặt có chữ ký số. Hệ thống xác minh chữ ký trước khi đưa nội dung gói vào hệ thống.
 
 ## Trước khi cài plugin
 
-Trước khi cài, hãy kiểm tra nhà phát hành, phiên bản tương thích, lịch sử thay đổi, các permission mà plugin yêu cầu và chính sách xử lý dữ liệu. Lịch sử thay đổi hiển thị dưới dạng mục **Có gì mới** trên mỗi plugin — ghi chú phát hành do nhà phát hành viết cho phiên bản đó, giúp bạn biết phiên bản mới làm gì trước khi phê duyệt.
+Hãy kiểm tra nhà phát hành, phiên bản tương thích, lịch sử thay đổi, các quyền mà plugin yêu cầu và chính sách xử lý dữ liệu. Mục **Có gì mới** hiển thị ghi chú do nhà phát hành viết cho từng phiên bản, giúp bạn hiểu các thay đổi trước khi phê duyệt.
 
 ## Cài đặt
 
 1. Mở **Marketplace** trong Admin.
 2. Chọn plugin hoặc theme.
-3. Xem các permission được yêu cầu và thông tin tương thích.
+3. Xem các quyền được yêu cầu và thông tin tương thích.
 4. Chọn **Install**.
-5. Với plugin, phê duyệt các permission cần thiết rồi kích hoạt.
+5. Với plugin, phê duyệt các quyền cần thiết rồi kích hoạt.
 
 :::danger
-Không cài package được gửi trực tiếp từ nguồn không tin cậy hoặc package không có chữ ký hợp lệ.
+Không cài gói nhận trực tiếp từ nguồn không tin cậy hoặc không có chữ ký hợp lệ.
 :::
 
 ## Vòng đời plugin
 
-**Install** đưa package đã được xác minh vào hệ thống. **Activate** cho phép plugin chạy trên **một website**. **Deactivate** dừng plugin nhưng không xóa package. Cấu hình và dữ liệu của plugin có thể vẫn còn sau khi vô hiệu hóa, vì vậy hãy đọc hướng dẫn gỡ cài đặt trước khi xóa.
+**Install** (Cài đặt) đưa gói đã xác minh vào hệ thống. **Activate** (Kích hoạt) cho phép plugin chạy trong phạm vi của nó, được giải thích bên dưới. **Deactivate** (Vô hiệu hóa) dừng plugin nhưng không gỡ gói cài đặt. Cấu hình và dữ liệu có thể vẫn còn sau khi vô hiệu hóa; hãy đọc hướng dẫn của plugin trước khi gỡ cài đặt.
 
-## Phạm vi kích hoạt: site và tổ chức
+## Phạm vi kích hoạt: website và tổ chức
 
-Mỗi plugin thuộc đúng một **tầng kích hoạt**, quyết định nơi nó chạy:
+Plugin được phân loại theo cách cung cấp và phạm vi hoạt động:
 
 - **Plugin lõi (Core)** — do Z-CMS cung cấp, cài sẵn trên mọi website nhưng **tắt** cho đến khi quản trị viên bật và phê duyệt quyền.
-- **Plugin site** — cài và kích hoạt riêng cho từng website tại màn hình **Plugin**. Đây là tầng mặc định.
+- **Plugin cho từng website** — cài và kích hoạt riêng tại màn hình **Plugin** của website đó. Đây là phạm vi mặc định.
 - **Plugin tổ chức** — bật **một lần cho cả tổ chức** tại màn hình **Plugin tổ chức**, sau đó chạy trên **mọi website** thuộc tổ chức. Trên màn hình Plugin của từng website, plugin loại này hiển thị ở dạng chỉ đọc kèm nhãn "Đã bật cho toàn tổ chức".
 
-Chỉ Administrator hoặc Owner mới quản lý được plugin tổ chức, vì một thay đổi ở đó ảnh hưởng tới mọi website. Một plugin chỉ cài được ở đúng tầng do manifest của nó khai báo (`scope`): không thể cài plugin tổ chức cho riêng một website, và ngược lại.
+Chỉ Administrator hoặc Owner mới được quản lý plugin tổ chức vì thay đổi sẽ ảnh hưởng tới mọi website thuộc tổ chức. Plugin chỉ được cài trong phạm vi khai báo ở trường `scope` của tệp mô tả gói (manifest): không thể cài plugin tổ chức cho riêng một website và ngược lại.
 
 ## Phê duyệt quyền
 
-Manifest liệt kê các permission mà plugin yêu cầu, nhưng Administrator có thể chỉ phê duyệt một phần. Chỉ cấp những khả năng cần thiết cho chức năng bạn muốn bật. Hãy kiểm tra kỹ `content:update`, `media:delete`, `mail:send` và các permission cho phép gửi dữ liệu tới dịch vụ bên ngoài.
+Manifest liệt kê các quyền mà plugin yêu cầu, nhưng Administrator có thể chỉ phê duyệt một phần. Chỉ cấp quyền cần thiết cho các chức năng bạn muốn sử dụng. Hãy xem xét kỹ các quyền `content:update`, `media:delete`, `mail:send` và quyền gửi dữ liệu tới dịch vụ bên ngoài.
 
 ## Cập nhật và cách ly
 
-Trước khi cập nhật, hãy đọc lịch sử thay đổi, kiểm tra permission mới và yêu cầu chuyển đổi dữ liệu. Runtime đồng bộ danh sách thu hồi đã ký và cách ly package đã bị thu hồi. Không kích hoạt lại package đang bị cách ly; hãy cập nhật lên phiên bản đã sửa hoặc liên hệ nhà phát hành.
+Trước khi cập nhật, hãy đọc lịch sử thay đổi, kiểm tra quyền mới và yêu cầu chuyển đổi dữ liệu. Thành phần thực thi của Z-CMS đồng bộ danh sách thu hồi có chữ ký số và cách ly các gói bị thu hồi. Không kích hoạt lại gói đang bị cách ly; hãy cập nhật lên phiên bản đã sửa hoặc liên hệ nhà phát hành.
 
 Xem [Giao diện và cấu hình theme](/vi/users/appearance/) để biết cách thay đổi và kiểm tra theme.

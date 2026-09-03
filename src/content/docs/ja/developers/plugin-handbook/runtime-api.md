@@ -1,26 +1,26 @@
 ---
-title: プラグインランタイム API
-description: プラグインが実装するフックと呼び出せる ctx API、そしてそれぞれに必要なスコープ。
+title: プラグインのランタイム API
+description: プラグインのフック、ctx オブジェクトの API、各操作に必要な権限を説明します。
 sidebar:
   order: 3
 ---
 
-プラグインは `@zcmsorg/plugin-sdk` の `definePlugin` で構築した 1 つのオブジェクトをエクスポートします。プラグインが *できる* ことはすべて実装するフックであり、*触れられる* ものはすべて渡される `ctx` オブジェクトのメソッドです。サンドボックス内には `require` も `fs` も `process.env` もデータベースハンドルも `fetch` も存在しません。ある機能が以下のフックや `ctx` メソッドのいずれでもなければ、プラグインはそれを実行できません。
+プラグインは、`@zcmsorg/plugin-sdk` の `definePlugin` で作成したオブジェクトをエクスポートします。処理の実行タイミングはフックで定義し、外部のリソースには渡された `ctx` オブジェクトを通じてアクセスします。サンドボックスにはファイル操作 API、`process.env`、データベース接続、`fetch` はありません。プラグインが利用できる機能は、以下のフックと `ctx` メソッドに限られます。
 
-すべての `ctx` メソッドは `async` です。いずれもプラグインの isolate 内では実行されず、ホストへ RPC を呼び戻すためです。ホストは呼び出しのたびにプラグインへ付与されたスコープを再チェックします。`content:read` を一度も要求していないプラグインは、パッチで無効化できるローカルチェックではなく、ホストからの拒否を受け取ります。
+すべての `ctx` メソッドは非同期（`async`）です。処理はプラグインの隔離環境内ではなく、RPC で呼び出されるホスト側で実行されます。ホストは呼び出しごとに権限を確認します。たとえば、`content:read` が付与されていなければ、ホスト側でアクセスが拒否されます。プラグイン内のコードを書き換えて、この検証を回避することはできません。
 
 ## プラグインオブジェクト
 
 `definePlugin` は `manifest`（[最初のプラグインを作る](/ja/developers/plugin-handbook/getting-started/) を参照）と、以下の任意のフックを受け取ります。
 
-| Hook | 形 | 実行タイミング | 予算 |
+| フック | 型 | 実行タイミング | 実行制限 |
 | --- | --- | --- | --- |
-| `setup(ctx)` | `() => void` | プラグインがサイト上で有効化されたときに 1 回 — マイグレーション、シードデータ、デフォルト値。 | — |
-| `teardown(ctx)` | `() => void` | 無効化時に 1 回。ここでの throw はログに記録され、遷移はそのまま進行します。アンインストールではありません。 | — |
-| `actions` | `{ [event]: (payload, ctx) => void }` | 何かが起きた **後** の fire-and-forget。CMS は待機しません。 | async |
-| `filters` | `{ [name]: (value, context, ctx) => value }` | 値を **処理中** に変換します。呼び出し元は待機します。タイムアウトを超過した filter はスキップされ、元の値が使われます。 | ハードキャップあり |
-| `jobs` | `{ [name]: (payload, ctx) => void }` | 遅延処理。先行する `ctx.jobs.enqueue(name, payload)` がリクエストパス外で処理されるときに実行されます。 | 30s |
-| `calls` | `{ [name]: (payload, ctx) => unknown }` | リクエスト／レスポンス — CMS が呼び出し、**返り値を待ちます**。プラグインキーではなくケイパビリティで到達します。 | 30s |
+| `setup(ctx)` | `() => void` | サイトで有効化するたびに実行。データ移行、サンプルデータや初期値の登録に使用します。 | — |
+| `teardown(ctx)` | `() => void` | 無効化するたびに実行。例外が発生してもログに記録して状態遷移を続行します。アンインストール時の処理ではありません。 | — |
+| `actions` | `{ [event]: (payload, ctx) => void }` | イベント発生後に実行。CMS は完了を待ちません。 | 非同期 |
+| `filters` | `{ [name]: (value, context, ctx) => value }` | 処理中の値を変換。呼び出し元は結果を待ちます。制限時間を超えると元の値を使用します。 | 制限時間あり |
+| `jobs` | `{ [name]: (payload, ctx) => void }` | `ctx.jobs.enqueue(name, payload)` で登録したジョブを、Web リクエストとは別に実行します。 | 30 秒 |
+| `calls` | `{ [name]: (payload, ctx) => unknown }` | CMS から呼び出され、結果を返します。プラグインのキーではなく、ケイパビリティを通じて呼び出します。 | 30 秒 |
 
 ```ts
 import { definePlugin } from "@zcmsorg/plugin-sdk";
@@ -47,15 +47,15 @@ export default definePlugin({
 });
 ```
 
-:::caution[この4つの形だけが処理を行う]
-プラグインはタイマーを設定したり、コネクションを開いたり、自ら独自にコードを実行したりできません。**action** に反応し、**filter** を変換し、**call** に応答し、あるいはプラットフォームに後で **job** を実行するよう依頼するだけです。これがプラグインの制御フローのすべてです。
+:::caution[処理を実行する四つの方法]
+初期化と終了処理を除き、プラグインの処理方法は四つです。**action** でイベントに応答し、**filter** で値を変換し、**call** で結果を返し、**job** で後から実行する処理を登録します。タイマーの設定、接続の確立、プラットフォームから独立したコードの実行はできません。
 :::
 
 ## フックできるイベント
 
-### Actions — 事後に発火し、await されない
+### Actions — イベント発生後に実行し、完了を待たない
 
-| Event | Payload |
+| イベント | 渡されるデータ |
 | --- | --- |
 | `content.created` | `siteId, contentId, contentType, title` |
 | `content.updated` | `siteId, contentId, contentType, title` |
@@ -64,32 +64,32 @@ export default definePlugin({
 | `content.deleted` | `siteId, contentId` |
 | `theme.activated` | `siteId, themeKey` |
 | `plugin.activated` | `siteId, pluginId` |
-| `mail.sent` | `siteId, pluginKey, to[], subject, messageId, sentAt` — サイト上の *すべて* の送信に対するレシート。本文は含みません。 |
+| `mail.sent` | `siteId, pluginKey, to[], subject, messageId, sentAt` — サイトのメール送信ごとに届く通知。本文は含みません。 |
 | `mail.failed` | `siteId, pluginKey, to[], subject, error, failedAt` |
 
-### Filters — 値を処理中に変換する。ブロッキングかつ上限あり
+### Filters — 処理中の値を変換し、制限時間内で結果を待つ
 
-| Filter | Value | Context |
+| フィルター | 値 | コンテキスト |
 | --- | --- | --- |
-| `content.seo` | `{ title?, description?, ogImage?, noindex?, canonical? }` — テーマがレンダリングする直前の、ページのメタデータ。 | `siteId, contentId, path, title` |
-| `mail.sending` | `{ subject, text?, html?, replyTo?, send }` — SMTP 直前の送信メール。配信を取り消すには `send: false` を返します。 | `siteId, pluginKey, to[]` |
+| `content.seo` | `{ title?, description?, ogImage?, noindex?, canonical? }` — テーマが表示する直前のページの SEO 情報。 | `siteId, contentId, path, title` |
+| `mail.sending` | `{ subject, text?, html?, replyTo?, send }` — SMTP で送信する直前のメール。送信を中止するには `send: false` を返します。 | `siteId, pluginKey, to[]` |
 
 ## `ctx` オブジェクト
 
-| Property | 内容 | 必要なスコープ |
+| プロパティ | 用途 | 必要な権限・条件 |
 | --- | --- | --- |
-| `ctx.settings` | **このサイト** に対するプラグインの設定。`settingsSchema` のデフォルトとマージされます。 | — |
-| `ctx.secrets` | `{ placeholder: boolean }` — 宣言した `network.secrets` のうち管理者が入力したもの。値そのものは含みません。 | — |
+| `ctx.settings` | 現在のサイトのプラグイン設定。`settingsSchema` の初期値と統合されます。 | — |
+| `ctx.secrets` | `{ placeholder: boolean }` で、管理者が入力済みの `network.secrets` を示します。秘密情報の値は含みません。 | — |
 | `ctx.site` | 現在のサイトの `{ id, name, locale }`。 | — |
-| `ctx.log` | `info / warn / error(message, meta?)`。 | — |
-| `ctx.storage` | (プラグイン, サイト) に名前空間化されたキーバリューストレージ。 | — |
-| `ctx.db` | プラグイン **自身** のリレーショナルテーブル。 | `data:own` + first-party + 宣言済みテーブル |
-| `ctx.content` | サイトのコンテンツを読み取る。 | `content:read` |
-| `ctx.jobs` | バックグラウンド処理をキューに入れる。 | — |
-| `ctx.mail` | サイトのメールサーバー経由でメールを送信する。 | `mail:send` |
-| `ctx.http` | 宣言済みの外部ホストへアクセスする。 | `network:fetch` + `network.hosts` |
+| `ctx.log` | `info / warn / error(message, meta?)` によるログ出力。 | — |
+| `ctx.storage` | プラグインごと、サイトごとに分離されたキーバリューストレージ。 | — |
+| `ctx.db` | プラグイン専用のリレーショナルテーブルへのアクセス。 | `data:own`、Z-CMS 提供のプラグイン、テーブル宣言 |
+| `ctx.content` | サイトのコンテンツの読み取り。 | `content:read` |
+| `ctx.jobs` | バックグラウンドジョブの登録。 | — |
+| `ctx.mail` | サイトのメールサーバーを使った送信。 | `mail:send` |
+| `ctx.http` | 宣言済みの外部ホストへのアクセス。 | `network:fetch` と `network.hosts` |
 
-### `ctx.storage` — キーバリュー、デフォルトのストア
+### `ctx.storage` — 基本となるキーバリューストレージ
 
 ```ts
 await ctx.storage.set("counter", 3);
@@ -98,11 +98,11 @@ await ctx.storage.list("prefix:");                  // [{ key, value }]
 await ctx.storage.delete("counter");
 ```
 
-リレーショナルテーブルより先にこれを検討してください。`ctx.storage` だけを使うプラグインはスキーマのフットプリントをまったく持たず、コミュニティ製・first-party を問わずどのプラグインでも利用できます。キーと値はプラグインごと *かつ* サイトごとに分離されます。
+専用テーブルを作る前に、まず `ctx.storage` を検討してください。データベースのスキーマを追加せずに利用でき、コミュニティ製と Z-CMS 提供のどちらのプラグインにも対応しています。キーと値は、プラグインごと、サイトごとに分離されます。
 
 ### `ctx.db` — プラグイン自身のテーブル
 
-`data:own` を保持し、`manifest.database` でテーブルを宣言した first-party プラグインだけが利用できます。これはデータベースハンドルではありません。コネクションもトランザクションも SQL 文字列も存在しません。自分が所有するテーブル名と単純な等価フィルタを指定すると、ホストが境界の向こう側でパラメータ化クエリを構築し、あなたのトークンから `tenant_id`/`site_id` を各行に刻印します。
+`data:own` が付与され、`manifest.database` でテーブルを宣言した Z-CMS 提供のプラグインだけが利用できます。データベース接続そのものは渡されず、トランザクションの直接操作や SQL 文字列の送信もできません。プラグインが自分のテーブル名と検索条件を指定すると、ホストがパラメーター付きのクエリを組み立て、トークンの `tenant_id`/`site_id` による制限を適用します。
 
 ```ts
 await ctx.db.insert("p_com_example_plugin_hello__notes", { title: "Hi", body: "…" });
@@ -115,7 +115,7 @@ await ctx.db.update("…__notes", { body: "edited" }, { id });
 await ctx.db.delete("…__notes", { id });
 ```
 
-**フィルタリング。** `where` 内の裸の値は等価です（`{ stage: "lead" }`）。それ以外にはロングフォーム `{ column: { op, value } }` を使います。オペレータは `eq`、`neq`、`lt`、`lte`、`gt`、`gte`、`contains`、`startsWith`、`in` です。条件は AND で結合され、`OR` も生の SQL もなく、すべての値はバインドされたパラメータです。オペレータは比較方法を選ぶだけです。
+**検索条件。** `where` に値を直接指定すると、等価比較になります（例：`{ stage: "lead" }`）。それ以外の比較には `{ column: { op, value } }` を使います。演算子は `eq`、`neq`、`lt`、`lte`、`gt`、`gte`、`contains`、`startsWith`、`in` です。条件は AND で結合され、`OR` や SQL の直接指定には対応していません。値はすべてクエリのパラメーターとして渡されます。
 
 ```ts
 await ctx.db.select("…__customers", {
@@ -138,15 +138,15 @@ const page = await ctx.content.get(contentId);              // ContentDto | null
 const posts = await ctx.content.list({ contentTypeKey: "post", status: "PUBLISHED" });
 ```
 
-読み取り専用で、`content:read` によってゲートされます。コンテンツの書き込みはこのオブジェクトにはありません。プラグインは行を書き込むのではなく、`filters` と `actions` を通じてコンテンツに影響を与えます。
+`content:read` 権限が必要な読み取り専用 API です。このオブジェクトにコンテンツを書き込むメソッドはありません。プラグインはデータベースの行を直接変更せず、`filters` と `actions` を通じてコンテンツの処理に関与します。
 
-### `ctx.jobs` — 後で処理する
+### `ctx.jobs` — バックグラウンドジョブを登録する
 
 ```ts
 await ctx.jobs.enqueue("sync-catalog", { since: lastRun });
 ```
 
-プラグインが遅延処理を行う唯一の手段です。キューが処理するときに、payload が `jobs` 内の対応するハンドラへ渡されます。同じサンドボックス、同じスコープで、リクエストパス外で、その背後には永続性とリトライがあります。
+後から実行する処理は、この API で登録します。キューの処理時に、登録したデータが `jobs` 内の対応するハンドラーへ渡されます。ジョブは同じサンドボックスと権限範囲で、元の Web リクエストとは別に実行されます。ジョブの保存と失敗時の再試行はプラットフォームが管理します。
 
 ### `ctx.mail` — メールを送る
 
@@ -154,7 +154,7 @@ await ctx.jobs.enqueue("sync-catalog", { since: lastRun });
 await ctx.mail.send({ to: "a@b.co", subject: "Hello", text: "…", replyTo: "me@site" });
 ```
 
-`mail:send` が必要です。`from` はなく（エンベロープ送信者はサイトのものです）、SMTP ホストや認証情報もなく、配信結果もありません。`send` はメールがキューに受理された時点で resolve します。結果は後から `mail.sent` / `mail.failed` アクションとして届きます。送信はサイトごとにレート制限され、重複排除されます。
+`mail:send` 権限が必要です。送信元はサイトの設定を使うため、`from`、SMTP ホスト、認証情報は指定しません。`send` が完了するのはメールがキューに受け付けられた時点であり、送信完了時ではありません。送信結果は後から `mail.sent` または `mail.failed` で通知されます。送信頻度の制限と重複送信の防止はサイトごとに行われます。
 
 ### `ctx.http` — 外部サービスへアクセスする
 
@@ -168,27 +168,27 @@ const res = await ctx.http.fetch({
 const data = JSON.parse(res.body); // body arrives as text
 ```
 
-`network:fetch` **と**、ホストを指定する manifest 内の `network` ブロックが必要です。プラグインは、管理者が同意画面で目にしていないホストへは到達できません。ゲートウェイはプライベート・ループバック・リンクローカルアドレスを（すべてのリダイレクトでも）拒否し、各リクエストを 10s および 1&nbsp;MB に制限し、サイトごとの時間あたりクォータを課します。
+`network:fetch` 権限に加え、マニフェストの `network` で接続先ホストを宣言する必要があります。承認画面に表示されないホストには接続できません。ゲートウェイはプライベート、ループバック、リンクローカルの各アドレスを拒否し、リダイレクト先も毎回確認します。各リクエストは 10 秒、1&nbsp;MB までに制限され、サイトごとに 1 時間あたりの利用上限も適用されます。
 
-:::note[鍵を保持せずに使う]
-`network.secrets` の下に名前を付けた設定は `ctx.settings` から除外されます。認証情報が入る場所に `{{secret:name}}` と書けば、ゲートウェイがホストチェックの **後** に、サンドボックスの向こう側で実際の値に置換します。侵害されたプラグインは、受け取ったことのない鍵を持ち出すことはできません。
+:::note[秘密鍵の値を受け取らずに利用する]
+`network.secrets` に宣言した設定は `ctx.settings` から除外されます。認証情報が必要な箇所に `{{secret:name}}` を指定すると、ホストの確認後、ゲートウェイがサンドボックスの外側で実際の値に置き換えます。プラグインのコードには値が渡らないため、コードが侵害されても秘密情報を直接読み取ることはできません。
 :::
 
-## プラグインが要求できるスコープ
+## プラグインが要求できる権限
 
-`manifest.permissions` には、管理者が同意画面で承認するスコープを列挙します。プラグインが最もよく必要とするものは以下のとおりです。
+`manifest.permissions` には、管理者の承認が必要な権限を列挙します。よく使う権限は次のとおりです。
 
-| Scope | 付与するもの |
+| 権限 | 利用できる機能 |
 | --- | --- |
 | `content:read` | `ctx.content` |
-| `content:create` · `content:update` · `content:delete` · `content:publish` | それらを公開するパス上でのコンテンツ書き込み。 |
+| `content:create` · `content:update` · `content:delete` · `content:publish` | 対応する API を通じたコンテンツの書き込み。 |
 | `media:read` · `media:upload` · `media:update` · `media:delete` | メディアライブラリへのアクセス。 |
 | `mail:send` | `ctx.mail` |
-| `network:fetch` | `ctx.http`（`network` 宣言とともに） |
-| `data:own` | `ctx.db` と `database` ブロック（first-party のみ） |
+| `network:fetch` | `ctx.http`。別途 `network` の宣言が必要です。 |
+| `data:own` | `ctx.db` と `database` ブロック。Z-CMS 提供のプラグインのみ利用できます。 |
 
-`permissions` は、プラグインが **使うために要求する** コアスコープです。`permissionsProvided` と混同しないでください。後者は、プラグインが自身の画面をゲートするために **新たに生み出す** パーミッションキーです — [データテーブルと管理画面](/ja/developers/plugin-handbook/data-and-admin/) および [パーミッション](/ja/developers/plugin-handbook/permissions/) を参照してください。
+`permissions` は、プラグインが利用するために要求するプラットフォームの権限です。一方、`permissionsProvided` は、プラグイン自身の画面へのアクセスを制御するために新しく定義する権限です。詳しくは [データテーブルと管理画面](/ja/developers/plugin-handbook/data-and-admin/) と [プラグインの権限](/ja/developers/plugin-handbook/permissions/) を参照してください。
 
 ## 利用できないもの
 
-`require` はなく、`@zcmsorg/plugin-sdk` 以外の `import` もなく、`fs`、`process`、`process.env`、`fetch`、`WebSocket`、タイマー（`setTimeout`/`setInterval`）、そしてデータベースやネットワークのハンドルもありません。単一の CommonJS ファイルにバンドルし（[最初のプラグインを作る](/ja/developers/plugin-handbook/getting-started/) を参照）、外の世界へは `ctx` を通じてのみアクセスしてください。
+`require` や `import` で利用できる外部モジュールは `@zcmsorg/plugin-sdk` だけです。`fs`、`process`、`process.env`、`fetch`、`WebSocket`、タイマー（`setTimeout`/`setInterval`）、データベースやネットワークへの直接接続は利用できません。コードを一つの CommonJS ファイルにまとめ、外部へのアクセスには `ctx` を使ってください。[最初のプラグインを作る](/ja/developers/plugin-handbook/getting-started/) も参照してください。
