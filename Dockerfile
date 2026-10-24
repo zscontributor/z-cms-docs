@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 # ---------------------------------------------------------------------------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30-alpine AS runtime
 LABEL org.opencontainers.image.source="https://github.com/zscontributor/z-cms-docs"
 COPY --from=build /repo/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
