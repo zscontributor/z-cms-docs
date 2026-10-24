@@ -13,7 +13,7 @@ operators and marketplace publishers — published at **[docs.z-cms.org](https:/
 
 ## Development
 
-Requires Node.js 22.12+ and pnpm 10+.
+Requires Node.js 24+ and pnpm 10+.
 
 ```bash
 pnpm install
